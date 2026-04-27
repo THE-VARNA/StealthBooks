@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope, IBM_Plex_Mono } from "next/font/google";
+import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -52,7 +53,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-dvh bg-[hsl(var(--surface-base))] text-[hsl(var(--text-primary))] antialiased">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
