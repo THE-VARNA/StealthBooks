@@ -1,11 +1,12 @@
-import type { Metadata } from "next";
+"use client";
+
 import { ArrowDownUp, AlertTriangle } from "lucide-react";
 import { SectionToolbar } from "@/components/layout/SectionToolbar";
 import { GlassPanel } from "@/components/layout/GlassPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export const metadata: Metadata = { title: "Settlements | StealthBooks" };
+
 
 export default function SettlementsPage() {
   return (

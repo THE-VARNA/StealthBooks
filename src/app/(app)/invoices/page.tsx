@@ -30,13 +30,20 @@ export default function InvoicesPage() {
             <div key={h} className="px-5 py-3 text-label text-[hsl(var(--text-muted))]">{h}</div>
           ))}
         </div>
-        <EmptyStatePanel
-          icon={<FileText className="h-8 w-8" />}
-          title="No invoices yet"
-          description="Create your first invoice to start receiving private USDC payments through Umbra."
-          action={{ label: "Create invoice", onClick: () => {} }}
-          className="border-0 rounded-none"
-        />
+        <div className="py-16 flex flex-col items-center gap-4 text-center">
+          <div className="rounded-2xl bg-[hsl(var(--surface-overlay))] p-4 text-[hsl(var(--text-muted))]">
+            <FileText className="h-8 w-8" aria-hidden="true" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-heading-2 text-[hsl(var(--text-primary))]">No invoices yet</p>
+            <p className="max-w-sm text-body-sm text-[hsl(var(--text-muted))]">
+              Create your first invoice to start receiving private USDC payments through Umbra.
+            </p>
+          </div>
+          <Link href="/invoices/new">
+            <Button id="invoices-empty-create-btn" size="md">Create invoice</Button>
+          </Link>
+        </div>
       </GlassPanel>
     </div>
   );

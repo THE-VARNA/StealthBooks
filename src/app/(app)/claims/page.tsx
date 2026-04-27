@@ -44,12 +44,15 @@ export default function ClaimsPage() {
           <h2 className="text-heading-2">Discovered UTXOs</h2>
           <span className="text-body-sm text-[hsl(var(--text-muted))]">0 unclaimed</span>
         </div>
-        <EmptyStatePanel
-          icon={<Inbox className="h-8 w-8" />}
-          title="No UTXOs discovered"
-          description="Click 'Scan Now' to scan your wallet's publicReceived bucket for incoming payments."
-          className="border-0 rounded-none"
-        />
+        <div className="py-16 flex flex-col items-center gap-4 text-center">
+          <div className="rounded-2xl bg-[hsl(var(--surface-overlay))] p-4 text-[hsl(var(--text-muted))]">
+            <Inbox className="h-8 w-8" aria-hidden="true" />
+          </div>
+          <p className="text-heading-2 text-[hsl(var(--text-primary))]">No UTXOs discovered</p>
+          <p className="max-w-sm text-body-sm text-[hsl(var(--text-muted))]">
+            Click &apos;Scan Now&apos; to scan your wallet&apos;s publicReceived bucket for incoming payments.
+          </p>
+        </div>
       </GlassPanel>
     </div>
   );

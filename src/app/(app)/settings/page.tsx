@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
-import { Settings, Shield, Users, Bell } from "lucide-react";
+"use client";
+
+import { Settings, Shield, Users } from "lucide-react";
 import { SectionToolbar } from "@/components/layout/SectionToolbar";
 import { GlassPanel } from "@/components/layout/GlassPanel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -8,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata: Metadata = { title: "Settings | StealthBooks" };
 
 export default function SettingsPage() {
   return (

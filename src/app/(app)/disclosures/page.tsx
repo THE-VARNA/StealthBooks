@@ -42,13 +42,16 @@ export default function DisclosuresPage() {
           <h2 className="text-heading-2">Active Disclosures</h2>
           <Button id="disclosures-create-link-btn" variant="outline" size="sm">Create link</Button>
         </div>
-        <EmptyStatePanel
-          icon={<Eye className="h-8 w-8" />}
-          title="No disclosures yet"
-          description="Create a scoped disclosure link to share specific invoice records with auditors or counterparties."
-          action={{ label: "Create disclosure", onClick: () => {} }}
-          className="border-0 rounded-none"
-        />
+        <div className="py-16 flex flex-col items-center gap-4 text-center">
+          <div className="rounded-2xl bg-[hsl(var(--surface-overlay))] p-4 text-[hsl(var(--text-muted))]">
+            <Eye className="h-8 w-8" aria-hidden="true" />
+          </div>
+          <p className="text-heading-2 text-[hsl(var(--text-primary))]">No disclosures yet</p>
+          <p className="max-w-sm text-body-sm text-[hsl(var(--text-muted))]">
+            Create a scoped disclosure link to share specific invoice records with auditors or counterparties.
+          </p>
+          <Button id="disclosures-empty-create-btn" size="md">Create disclosure</Button>
+        </div>
       </GlassPanel>
     </div>
   );
