@@ -39,7 +39,6 @@ export default function BalancesPage() {
           value="Connect wallet"
           subtext="Encrypted token account"
           icon={<Shield className="h-4 w-4" />}
-          glow="accent"
         />
         <MetricTile
           label="Pending Claims"

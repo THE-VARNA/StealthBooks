@@ -1,50 +1,74 @@
-// Umbra SDK client factory
-// Memoized per (walletAdapter, cluster) pair so we never create duplicate instances.
-// All Umbra state is wallet-scoped; only call after wallet is connected.
+/**
+ * Umbra SDK client factory
+ * Memoized per (walletAddress, network) pair.
+ *
+ * Source: https://sdk.umbraprivacy.com/quickstart
+ * API: getUmbraClient({ signer, network, rpcUrl, rpcSubscriptionsUrl, indexerApiEndpoint? })
+ * Returns: Promise<IUmbraClient>
+ */
 
-import { type UmbraClient } from "@umbra-privacy/sdk";
+import { getUmbraClient as sdkGetUmbraClientType } from "@umbra-privacy/sdk";
+type IUmbraClient = Awaited<ReturnType<typeof sdkGetUmbraClientType>>;
 
-const clientCache = new Map<string, UmbraClient>();
+const clientCache = new Map<string, IUmbraClient>();
+
+/** SDK network values per GetUmbraClientArgs.network */
+export type UmbraNetwork = "mainnet" | "devnet" | "localnet";
 
 interface GetUmbraClientOptions {
   walletAddress: string;
-  cluster: "mainnet-beta" | "devnet";
+  network: UmbraNetwork;
   rpcUrl: string;
-  indexerUrl?: string;
-  relayerUrl?: string;
+  rpcSubscriptionsUrl?: string;
+  indexerApiEndpoint?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  signer: any;
+  /** Defer the master seed wallet prompt to first use (avoids early popup) */
+  deferMasterSeedSignature?: boolean;
 }
 
 /**
- * Returns a memoized UmbraClient instance for the given wallet + cluster.
- * Call this inside a React hook after the wallet is connected.
- *
- * NOTE: We dynamically import @umbra-privacy/sdk to avoid loading the heavy
- * SDK on the server and to keep WASM loading async.
+ * Returns a memoized IUmbraClient for the given wallet + network.
+ * Dynamic import keeps WASM + SDK bundle out of SSR.
  */
 export async function getUmbraClient(
   options: GetUmbraClientOptions
-): Promise<UmbraClient> {
-  const cacheKey = `${options.walletAddress}:${options.cluster}`;
-
+): Promise<IUmbraClient> {
+  const cacheKey = `${options.walletAddress}:${options.network}`;
   if (clientCache.has(cacheKey)) {
     return clientCache.get(cacheKey)!;
   }
 
-  const { initializeUmbraClient } = await import("@umbra-privacy/sdk");
+  const { getUmbraClient: sdkGetUmbraClient } = await import("@umbra-privacy/sdk");
 
-  const client = await initializeUmbraClient({
+  const rpcWs =
+    options.rpcSubscriptionsUrl ??
+    options.rpcUrl.replace("https://", "wss://").replace("http://", "ws://");
+
+  const client = await sdkGetUmbraClient({
+    signer: options.signer,
+    network: options.network,
     rpcUrl: options.rpcUrl,
-    cluster: options.cluster,
-    indexerUrl:
-      options.indexerUrl ?? "https://utxo-indexer.api.umbraprivacy.com",
-    relayerUrl: options.relayerUrl ?? "https://relayer.api.umbraprivacy.com",
+    rpcSubscriptionsUrl: rpcWs,
+    indexerApiEndpoint:
+      options.indexerApiEndpoint ??
+      process.env.NEXT_PUBLIC_UMBRA_INDEXER_URL ??
+      "https://utxo-indexer.api.umbraprivacy.com",
+    deferMasterSeedSignature: options.deferMasterSeedSignature ?? true,
   });
 
   clientCache.set(cacheKey, client);
   return client;
 }
 
-/** Remove a cached client (e.g. on wallet disconnect) */
-export function evictUmbraClient(walletAddress: string, cluster: string) {
-  clientCache.delete(`${walletAddress}:${cluster}`);
+/** Convert Solana cluster name → SDK network name */
+export function clusterToNetwork(cluster: string): UmbraNetwork {
+  if (cluster === "devnet") return "devnet";
+  if (cluster === "localnet" || cluster === "localhost") return "localnet";
+  return "mainnet";
+}
+
+/** Remove a cached client (call on wallet disconnect) */
+export function evictUmbraClient(walletAddress: string, network: string) {
+  clientCache.delete(`${walletAddress}:${network}`);
 }

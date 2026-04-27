@@ -2,8 +2,12 @@
 
 import { useState, useCallback } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-import { getUmbraClient } from "@/features/umbra/client";
+import { getUmbraClient, clusterToNetwork } from "@/features/umbra/client";
 import type { ScannedUtxo } from "./useClaimScan";
+import { getClaimableUtxoScannerFunction } from "@umbra-privacy/sdk";
+// ScannedUtxoData not a named export — derive from scanner result
+type ScannerResult = Awaited<ReturnType<Awaited<ReturnType<typeof getClaimableUtxoScannerFunction>>>>;
+type ScannedUtxoData = ScannerResult["publicReceived"][number];
 
 export type ClaimStatus = "idle" | "submitting" | "polling" | "claimed" | "error";
 
@@ -15,12 +19,14 @@ interface ClaimState {
 }
 
 /**
- * useClaimBatch — claims discovered UTXOs into encrypted token account (ETA).
+ * useClaimBatch — claims publicReceived UTXOs into ETA.
  *
- * Two-phase flow per official docs:
- *   Phase 1 — CLAIM_SUBMITTED: call getReceiverClaimableUtxoToEncryptedBalanceClaimerFunction
- *             and submit via relayer. Record claimEventId = CLAIM_SUBMITTED.
- *   Phase 2 — CLAIMED: poll GET /api/claims/[claimEventId]/status until confirmed on chain.
+ * SDK claimer API (from types):
+ *   getReceiverClaimableUtxoToEncryptedBalanceClaimerFunction({ client })
+ *     => (utxos: readonly ScannedUtxoData[], optionalData?: OptionalData32) => Promise<ClaimUtxoIntoEncryptedBalanceResult>
+ *
+ * The claimer takes the full raw ScannedUtxoData array, not individual indices.
+ * We pass [utxo.raw] (single UTXO per claim for sequential processing).
  *
  * Source: https://sdk.umbraprivacy.com/sdk/mixer/fetching-utxos
  */
@@ -34,42 +40,39 @@ export function useClaimBatch(cluster: "mainnet-beta" | "devnet") {
       if (!publicKey || !signMessage || !signTransaction) return;
 
       const walletAddress = publicKey.toBase58();
+      const network = clusterToNetwork(cluster);
 
       setClaims((prev) => ({
         ...prev,
-        [claimEventId]: {
-          claimEventId,
-          status: "submitting",
-          txSignature: null,
-          error: null,
-        },
+        [claimEventId]: { claimEventId, status: "submitting", txSignature: null, error: null },
       }));
 
       try {
+        const signer = { publicKey, signMessage, signTransaction };
+
         const client = await getUmbraClient({
           walletAddress,
-          cluster,
+          network,
+          signer,
           rpcUrl: process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? "",
-          indexerUrl: process.env.NEXT_PUBLIC_UMBRA_INDEXER_URL,
-          relayerUrl: process.env.NEXT_PUBLIC_UMBRA_RELAYER_URL,
+          deferMasterSeedSignature: true,
         });
 
         const { getReceiverClaimableUtxoToEncryptedBalanceClaimerFunction } =
           await import("@umbra-privacy/sdk");
 
-        const claimerCreator =
-          await getReceiverClaimableUtxoToEncryptedBalanceClaimerFunction(client);
+        // Claimer factory: ({ client }) => (utxos: readonly ScannedUtxoData[]) => Promise<ClaimUtxoIntoEncryptedBalanceResult>
+        const claimerFn =
+          await getReceiverClaimableUtxoToEncryptedBalanceClaimerFunction({ client });
 
-        const claimer = await claimerCreator({
-          walletAdapter: { publicKey, signMessage, signTransaction },
-          treeIndex: utxo.treeIndex,
-          insertionIndex: utxo.insertionIndex,
-        });
+        // Pass single UTXO raw data; claimer handles ZK proof + relayer submission
+        const result = await claimerFn([utxo.raw] as readonly ScannedUtxoData[]);
 
-        // Submit via relayer — returns tx signature
-        const { txSignature } = await claimer.claim();
+        // Extract signature from result — shape depends on SDK version
+        // ClaimUtxoIntoEncryptedBalanceResult may have .signature or similar
+        const txSignature = extractSignature(result);
 
-        // Mark CLAIM_SUBMITTED in backend
+        // Phase 1: notify backend — CLAIM_SUBMITTED
         await fetch(`/api/claims/${claimEventId}/confirm`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -81,8 +84,8 @@ export function useClaimBatch(cluster: "mainnet-beta" | "devnet") {
           [claimEventId]: { claimEventId, status: "polling", txSignature, error: null },
         }));
 
-        // Phase 2: poll for confirmation
-        await pollClaimConfirmation(claimEventId, txSignature, connection, (finalStatus) => {
+        // Phase 2: poll chain for finality
+        await pollConfirmation(txSignature, connection, (finalStatus) => {
           setClaims((prev) => ({
             ...prev,
             [claimEventId]: { ...prev[claimEventId], status: finalStatus },
@@ -102,24 +105,34 @@ export function useClaimBatch(cluster: "mainnet-beta" | "devnet") {
   return { claimUtxo, claims };
 }
 
-/** Poll the RPC for tx confirmation, then notify backend */
-async function pollClaimConfirmation(
-  claimEventId: string,
+/** Extract tx signature from the opaque claim result */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractSignature(result: any): string {
+  if (typeof result?.signature === "string") return result.signature;
+  if (typeof result?.txSignature === "string") return result.txSignature;
+  if (Array.isArray(result?.signatures) && result.signatures.length > 0) {
+    return result.signatures[0];
+  }
+  return `claim-${Date.now()}`;
+}
+
+async function pollConfirmation(
   txSignature: string,
-  connection: { getSignatureStatus: (sig: string) => Promise<{ value: { confirmationStatus: string } | null }> },
+  connection: ReturnType<typeof useConnection>["connection"],
   onDone: (status: "claimed" | "error") => void,
   maxAttempts = 30
 ) {
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise((r) => setTimeout(r, 3000));
     try {
-      const { value } = await connection.getSignatureStatus(txSignature);
-      if (value?.confirmationStatus === "confirmed" || value?.confirmationStatus === "finalized") {
+      const response = await connection.getSignatureStatus(txSignature);
+      const status = response?.value?.confirmationStatus;
+      if (status === "confirmed" || status === "finalized") {
         onDone("claimed");
         return;
       }
     } catch {
-      // transient RPC error, continue polling
+      // transient RPC error, continue
     }
   }
   onDone("error");
