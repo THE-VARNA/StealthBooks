@@ -1,0 +1,333 @@
+// This is your Prisma schema file for StealthBooks
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum OrgRole {
+  OWNER
+  FINANCE_OPERATOR
+  REVIEWER
+}
+
+enum InvoiceStatus {
+  DRAFT
+  APPROVED
+  OPEN
+  PAYMENT_INTENT_CREATED
+  PAYMENT_SUBMITTED
+  TX_CONFIRMED
+  INDEXER_VISIBLE
+  PAID_UNCLAIMED
+  CLAIM_SUBMITTED
+  CLAIMED_PRIVATE
+  VOID
+  EXPIRED
+}
+
+enum ClaimEventStatus {
+  DISCOVERED
+  CLAIM_SUBMITTED
+  CLAIMED
+  FAILED
+  DUPLICATE
+}
+
+enum DisclosureSessionStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+enum AuditAction {
+  ORG_CREATED
+  ORG_MEMBER_ADDED
+  ORG_MEMBER_REMOVED
+  UMBRA_REGISTERED
+  INVOICE_CREATED
+  INVOICE_UPDATED
+  INVOICE_APPROVED
+  INVOICE_VOIDED
+  INVOICE_EXPIRED
+  PAYMENT_INTENT_CREATED
+  PAYMENT_SUBMITTED
+  TX_CONFIRMED
+  INDEXER_VISIBLE
+  CLAIM_DISCOVERED
+  CLAIM_SUBMITTED
+  CLAIM_CONFIRMED
+  BALANCE_SNAPSHOT_RECORDED
+  WITHDRAWAL_INITIATED
+  WITHDRAWAL_CONFIRMED
+  DISCLOSURE_CREATED
+  DISCLOSURE_REVOKED
+  DISCLOSURE_ARTIFACT_GENERATED
+  DISCLOSURE_ACCESSED
+}
+
+// ─── Core Organization Models ─────────────────────────────────────────────────
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  logoUrl     String?  @map("logo_url")
+  cluster     String   @default("mainnet-beta") // "mainnet-beta" | "devnet"
+  // Umbra readiness cache (chain is authoritative; this is display only)
+  umbraRegisteredAt DateTime? @map("umbra_registered_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  memberships OrganizationMembership[]
+  counterparties Counterparty[]
+  invoices    Invoice[]
+  disclosureSessions DisclosureSession[]
+  auditLogs   AuditLog[]
+  balanceSnapshots EncryptedBalanceSnapshotMetadata[]
+
+  @@map("organizations")
+}
+
+model OrganizationMembership {
+  id        String   @id @default(cuid())
+  orgId     String   @map("org_id")
+  walletAddress String @map("wallet_address")
+  role      OrgRole  @default(FINANCE_OPERATOR)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, walletAddress])
+  @@index([walletAddress])
+  @@map("organization_memberships")
+}
+
+model Counterparty {
+  id           String   @id @default(cuid())
+  orgId        String   @map("org_id")
+  displayName  String   @map("display_name")
+  walletAddress String?  @map("wallet_address")
+  email        String?
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  invoices     Invoice[]
+
+  @@index([orgId])
+  @@map("counterparties")
+}
+
+// ─── Invoice Models ───────────────────────────────────────────────────────────
+
+model Invoice {
+  id              String        @id @default(cuid())
+  orgId           String        @map("org_id")
+  counterpartyId  String?       @map("counterparty_id")
+  invoiceNumber   String        @unique @map("invoice_number")
+  status          InvoiceStatus @default(DRAFT)
+
+  // Amounts in USDC micro-units (6 decimals)
+  subtotalMinor   BigInt        @map("subtotal_minor")
+  protocolFeeMinor BigInt       @default(0) @map("protocol_fee_minor")
+  totalMinor      BigInt        @map("total_minor")
+  mint            String        @default("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
+
+  memo            String?
+  internalNotes   String?       @map("internal_notes")
+  dueDate         DateTime?     @map("due_date")
+
+  // Public checkout
+  publicTokenHash String?       @unique @map("public_token_hash") // SHA-256 of raw token
+  publicTokenExpiresAt DateTime? @map("public_token_expires_at")
+
+  approvedAt      DateTime?     @map("approved_at")
+  approvedBy      String?       @map("approved_by") // wallet address
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  organization    Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  counterparty    Counterparty? @relation(fields: [counterpartyId], references: [id])
+  lineItems       InvoiceLineItem[]
+  paymentIntents  PaymentIntent[]
+  claimEvents     ClaimEvent[]
+  umbraTransactions UmbraTransaction[]
+
+  @@index([orgId, status])
+  @@index([publicTokenHash])
+  @@map("invoices")
+}
+
+model InvoiceLineItem {
+  id          String   @id @default(cuid())
+  invoiceId   String   @map("invoice_id")
+  description String
+  quantity    Decimal  @db.Decimal(12, 4)
+  unitPrice   BigInt   @map("unit_price") // micro-units
+  amountMinor BigInt   @map("amount_minor") // quantity * unitPrice
+
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_line_items")
+}
+
+// ─── Payment Models ───────────────────────────────────────────────────────────
+
+model PaymentIntent {
+  id                String   @id @default(cuid())
+  invoiceId         String   @map("invoice_id")
+  payerWallet       String   @map("payer_wallet")
+  idempotencyKey    String   @unique @map("idempotency_key")
+
+  // Fee quote at creation time
+  amountMinor       BigInt   @map("amount_minor")
+  protocolFeeMinor  BigInt   @map("protocol_fee_minor")
+  quoteCreatedAt    DateTime @default(now()) @map("quote_created_at")
+
+  // Filled after payer signs and submits
+  createUtxoTxSignature String? @map("create_utxo_tx_signature")
+  expectedUtxoTreeIndex Int?    @map("expected_utxo_tree_index")
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  invoice           Invoice  @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
+  @@map("payment_intents")
+}
+
+model UmbraTransaction {
+  id            String   @id @default(cuid())
+  invoiceId     String   @map("invoice_id")
+  txSignature   String   @unique @map("tx_signature")
+  txType        String   @map("tx_type") // "utxo_create" | "claim" | "withdrawal"
+  cluster       String
+  confirmedAt   DateTime? @map("confirmed_at")
+  indexerVisibleAt DateTime? @map("indexer_visible_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
+  @@map("umbra_transactions")
+}
+
+model ClaimEvent {
+  id              String           @id @default(cuid())
+  invoiceId       String?          @map("invoice_id") // null = unmatched claim
+  orgId           String           @map("org_id")
+  status          ClaimEventStatus @default(DISCOVERED)
+
+  // UTXO identity (from scanner)
+  sourceUtxoRef   String           @unique @map("source_utxo_ref")
+  treeIndex       Int              @map("tree_index")
+  insertionIndex  Int              @map("insertion_index")
+  amountMinor     BigInt           @map("amount_minor")
+  mint            String
+
+  // Filled after relayer submission
+  claimTxSignature String?         @map("claim_tx_signature")
+  claimedAt        DateTime?       @map("claimed_at")
+  failedAt         DateTime?       @map("failed_at")
+  failureReason    String?         @map("failure_reason")
+
+  discoveredAt    DateTime         @default(now()) @map("discovered_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  invoice         Invoice?         @relation(fields: [invoiceId], references: [id])
+
+  @@index([orgId, status])
+  @@map("claim_events")
+}
+
+// ─── Balance and Settlement ───────────────────────────────────────────────────
+
+model EncryptedBalanceSnapshotMetadata {
+  id              String   @id @default(cuid())
+  orgId           String   @map("org_id")
+  walletAddress   String   @map("wallet_address")
+  mint            String
+  // Note: exact balance never stored server-side; state type only
+  balanceState    String   @map("balance_state") // "shared" | "mxe" | "uninitialized" | "non_existent"
+  snapshotAt      DateTime @default(now()) @map("snapshot_at")
+
+  organization    Organization @relation(fields: [orgId], references: [id])
+
+  @@index([orgId])
+  @@map("encrypted_balance_snapshot_metadata")
+}
+
+// ─── Disclosures ──────────────────────────────────────────────────────────────
+
+model DisclosureSession {
+  id            String                  @id @default(cuid())
+  orgId         String                  @map("org_id")
+  shareId       String                  @unique @map("share_id")
+  status        DisclosureSessionStatus @default(ACTIVE)
+
+  label         String
+  passcodeHash  String?                 @map("passcode_hash")
+  scope         Json                    // { invoiceIds, dateRange, kinds }
+  expiresAt     DateTime                @map("expires_at")
+
+  createdBy     String                  @map("created_by") // wallet address
+  revokedAt     DateTime?               @map("revoked_at")
+  revokedBy     String?                 @map("revoked_by")
+  lastAccessedAt DateTime?              @map("last_accessed_at")
+
+  createdAt     DateTime                @default(now()) @map("created_at")
+  updatedAt     DateTime                @updatedAt @map("updated_at")
+
+  organization  Organization            @relation(fields: [orgId], references: [id])
+  artifacts     DisclosureArtifact[]
+
+  @@index([orgId, status])
+  @@map("disclosure_sessions")
+}
+
+model DisclosureArtifact {
+  id                String   @id @default(cuid())
+  disclosureSessionId String  @map("disclosure_session_id")
+  kind              String   // "invoice_report" | "tvk_export" | "reconciliation_summary"
+  // Metadata only — actual artifact generated client-side and delivered out-of-band
+  invoiceCount      Int?     @map("invoice_count")
+  dateRangeStart    DateTime? @map("date_range_start")
+  dateRangeEnd      DateTime? @map("date_range_end")
+  generatedAt       DateTime  @default(now()) @map("generated_at")
+  generatedBy       String    @map("generated_by") // wallet address
+
+  session           DisclosureSession @relation(fields: [disclosureSessionId], references: [id])
+
+  @@index([disclosureSessionId])
+  @@map("disclosure_artifacts")
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  orgId       String      @map("org_id")
+  action      AuditAction
+  actorWallet String?     @map("actor_wallet")
+  // Redacted reference to subject (no private amounts or counterparty details)
+  subjectId   String?     @map("subject_id")
+  subjectType String?     @map("subject_type") // "invoice" | "claim" | "disclosure" | "org"
+  metadata    Json?       // only non-sensitive context
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [orgId], references: [id])
+
+  @@index([orgId, createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
