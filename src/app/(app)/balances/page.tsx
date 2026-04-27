@@ -23,7 +23,7 @@ export default function BalancesPage() {
       />
 
       {/* Privacy notice */}
-      <GlassPanel padding="md" glow="accent" className="border border-[hsl(var(--brand-accent)/0.2)]">
+      <GlassPanel padding="md" glow="cyan" className="border border-[rgba(34,211,238,0.18)]">
         <div className="flex items-center gap-3">
           <Lock className="h-5 w-5 text-[hsl(var(--brand-accent))] shrink-0" aria-hidden="true" />
           <p className="text-body-sm text-[hsl(var(--text-secondary))]">

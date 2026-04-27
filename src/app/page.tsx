@@ -1,118 +1,376 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Shield, ArrowRight, Lock, Eye, FileText, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { GlassPanel } from "@/components/layout/GlassPanel";
+import { Shield, ArrowRight, Lock, Eye, BarChart3, Zap, ChevronRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "StealthBooks — Private B2B Billing on Solana",
-  description: "Issue invoices and receive USDC privately through Umbra's zero-knowledge infrastructure. Built for crypto-native businesses.",
+  description: "Issue invoices, receive USDC through Umbra's zero-knowledge mixer, and share only what your auditor needs. No counterparty exposure. No treasury surveillance.",
 };
 
 const FEATURES = [
   {
-    icon: Lock,
+    icon: Shield,
     title: "Private Settlement",
-    desc: "Payments flow through Umbra's mixer. Counterparties, amounts, and treasury behavior stay off the public ledger.",
+    desc: "Payments flow through Umbra's ZK mixer. Your treasury balance is never exposed on-chain.",
+    color: "#6366f1",
+    bg: "rgba(99,102,241,0.08)",
+    border: "rgba(99,102,241,0.2)",
+  },
+  {
+    icon: Lock,
+    title: "Encrypted Balances",
+    desc: "Claimed receivables land in your Encrypted Token Account — invisible to anyone without your key.",
+    color: "#22d3ee",
+    bg: "rgba(34,211,238,0.07)",
+    border: "rgba(34,211,238,0.18)",
   },
   {
     icon: Eye,
     title: "Selective Disclosure",
-    desc: "Share scoped invoice packages with auditors via time-limited links. No live key grants required.",
+    desc: "Share scoped, time-limited reports with auditors. Revoke access instantly. Zero overexposure.",
+    color: "#10b981",
+    bg: "rgba(16,185,129,0.07)",
+    border: "rgba(16,185,129,0.18)",
   },
   {
-    icon: FileText,
-    title: "Invoice Workflow",
-    desc: "Draft, approve, and share professional invoices with USDC amounts. Payers see a clean checkout — no wallet setup required.",
+    icon: BarChart3,
+    title: "Invoice Lifecycle",
+    desc: "From DRAFT to CLAIMED_PRIVATE — a full state machine built for serious B2B payment flows.",
+    color: "#818cf8",
+    bg: "rgba(129,140,248,0.08)",
+    border: "rgba(129,140,248,0.2)",
   },
-  {
-    icon: Zap,
-    title: "ZK-Proven Claims",
-    desc: "Claim UTXOs into your encrypted token account using zero-knowledge proofs, relayed by Umbra's relayer network.",
-  },
+];
+
+const STEPS = [
+  { n: "01", title: "Issue Invoice",     desc: "Create a USDC invoice with line items, due date, and a private checkout link." },
+  { n: "02", title: "Payer Completes",   desc: "Payer uses Umbra's mixer to send USDC — destination stays private." },
+  { n: "03", title: "Scan & Claim",      desc: "Scan your publicReceived bucket. Claim UTXOs into your encrypted account." },
+  { n: "04", title: "Disclose Selectively", desc: "Generate scoped audit packages — only the records your accountant needs." },
 ];
 
 export default function LandingPage() {
   return (
-    <main className="min-h-dvh flex flex-col">
-      {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--surface-border)/0.08)]" aria-label="Main navigation">
+    <div
+      className="min-h-dvh overflow-x-hidden"
+      style={{ background: "rgb(5,7,18)", fontFamily: "var(--font-sans)" }}
+    >
+      {/* Ambient background orbs */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
+        <div style={{
+          position: "absolute", top: "-20%", left: "-10%",
+          width: "60vw", height: "60vw",
+          background: "radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 70%)",
+          borderRadius: "50%",
+        }} />
+        <div style={{
+          position: "absolute", top: "10%", right: "-15%",
+          width: "50vw", height: "50vw",
+          background: "radial-gradient(ellipse, rgba(34,211,238,0.07) 0%, transparent 70%)",
+          borderRadius: "50%",
+        }} />
+        <div style={{
+          position: "absolute", bottom: "-10%", left: "30%",
+          width: "40vw", height: "40vw",
+          background: "radial-gradient(ellipse, rgba(99,102,241,0.06) 0%, transparent 70%)",
+          borderRadius: "50%",
+        }} />
+      </div>
+
+      {/* ── Navbar ──────────────────────────────────────────────────────── */}
+      <header
+        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4"
+        style={{
+          background: "rgba(5,7,18,0.7)",
+          backdropFilter: "blur(20px)",
+          borderBottom: "1px solid rgba(255,255,255,0.055)",
+        }}
+      >
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[hsl(var(--brand-primary))] to-[hsl(var(--brand-accent))]">
-            <Shield className="h-4 w-4 text-white" aria-hidden="true" />
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-xl"
+            style={{
+              background: "linear-gradient(135deg, #6366f1 0%, #22d3ee 100%)",
+              boxShadow: "0 0 18px rgba(99,102,241,0.4)",
+            }}
+          >
+            <Shield className="h-4 w-4 text-white" />
           </div>
-          <span className="text-heading-2 gradient-text">StealthBooks</span>
+          <span
+            className="text-[1.0625rem] font-bold tracking-tight"
+            style={{
+              background: "linear-gradient(135deg, #818cf8 0%, #22d3ee 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            StealthBooks
+          </span>
         </div>
+
+        <nav className="hidden md:flex items-center gap-6">
+          {["Features", "How it works", "Privacy"].map((item) => (
+            <a
+              key={item}
+              href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+              className="text-sm font-medium transition-colors"
+              style={{ color: "rgb(148,163,184)" }}
+              onMouseEnter={(e) => { (e.target as HTMLAnchorElement).style.color = "rgb(248,250,252)"; }}
+              onMouseLeave={(e) => { (e.target as HTMLAnchorElement).style.color = "rgb(148,163,184)"; }}
+            >
+              {item}
+            </a>
+          ))}
+        </nav>
+
         <div className="flex items-center gap-3">
           <Link href="/dashboard">
-            <Button id="landing-signin-btn" variant="outline" size="sm">Sign in</Button>
+            <button
+              id="landing-signin-btn"
+              className="rounded-xl px-4 py-2 text-sm font-semibold transition-all"
+              style={{
+                color: "rgb(148,163,184)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(255,255,255,0.04)",
+              }}
+            >
+              Sign in
+            </button>
           </Link>
           <Link href="/dashboard">
-            <Button id="landing-getstarted-btn" size="sm">Get started</Button>
+            <button
+              id="landing-get-started-btn"
+              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+              style={{
+                background: "linear-gradient(135deg, #6366f1 0%, #818cf8 100%)",
+                boxShadow: "0 0 20px rgba(99,102,241,0.4)",
+              }}
+            >
+              Get Started
+            </button>
           </Link>
         </div>
-      </nav>
+      </header>
 
-      {/* Hero */}
-      <section className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center" aria-labelledby="hero-heading">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[hsl(var(--brand-primary)/0.3)] bg-[hsl(var(--brand-primary)/0.08)] px-4 py-1.5">
-          <Shield className="h-3.5 w-3.5 text-[hsl(var(--brand-primary))]" aria-hidden="true" />
-          <span className="text-label text-[hsl(var(--brand-primary))]">Powered by Umbra Privacy</span>
+      {/* ── Hero ────────────────────────────────────────────────────────── */}
+      <section className="relative flex flex-col items-center justify-center min-h-dvh px-6 text-center pt-20">
+        {/* Badge */}
+        <div
+          className="mb-8 flex items-center gap-2 rounded-full px-4 py-2"
+          style={{
+            background: "rgba(99,102,241,0.1)",
+            border: "1px solid rgba(99,102,241,0.3)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <Zap className="h-3.5 w-3.5" style={{ color: "#22d3ee" }} />
+          <span className="text-label" style={{ color: "#22d3ee" }}>
+            Powered by Umbra Privacy
+          </span>
         </div>
 
-        <h1 id="hero-heading" className="text-display gradient-text max-w-3xl">
-          Private B2B Billing on Solana
+        <h1 className="text-display max-w-4xl mx-auto mb-6">
+          <span style={{ color: "rgb(248,250,252)" }}>Private B2B Billing</span>
+          <br />
+          <span style={{
+            background: "linear-gradient(135deg, #818cf8 0%, #22d3ee 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}>
+            on Solana
+          </span>
         </h1>
-        <p className="mt-6 max-w-2xl text-body text-[hsl(var(--text-secondary))] text-lg leading-relaxed">
-          Issue invoices, receive USDC through Umbra&rsquo;s zero-knowledge mixer, and share only what your auditor needs. No counterparty exposure. No treasury surveillance.
+
+        <p
+          className="max-w-xl mx-auto text-body mb-10"
+          style={{ color: "rgb(148,163,184)", lineHeight: "1.75" }}
+        >
+          Issue invoices, receive USDC through Umbra&apos;s zero-knowledge mixer, and share only what your
+          auditor needs. No counterparty exposure. No treasury surveillance.
         </p>
 
-        <div className="mt-10 flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-3 mb-14">
           <Link href="/dashboard">
-            <Button id="hero-start-btn" size="xl">
-              Start invoicing
-              <ArrowRight className="h-5 w-5" aria-hidden="true" />
-            </Button>
+            <button
+              id="hero-start-invoicing-btn"
+              className="flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white"
+              style={{
+                background: "linear-gradient(135deg, #6366f1 0%, #818cf8 100%)",
+                boxShadow: "0 0 28px rgba(99,102,241,0.45), 0 4px 12px rgba(0,0,0,0.4)",
+              }}
+            >
+              Start Invoicing
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </Link>
-          <Link href="/dashboard">
-            <Button id="hero-demo-btn" variant="glass" size="xl">View demo</Button>
-          </Link>
+          <a
+            href="#how-it-works"
+            id="hero-view-demo-btn"
+            className="flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition-all"
+            style={{
+              color: "rgb(148,163,184)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              background: "rgba(255,255,255,0.04)",
+            }}
+          >
+            View demo
+          </a>
         </div>
 
         {/* Privacy disclaimer */}
-        <p className="mt-8 text-body-sm text-[hsl(var(--text-muted))] max-w-lg">
-          Payer outflows from public ATAs remain visible on-chain. Privacy applies to the vendor receiving address, UTXO routing, and treasury aggregation.
+        <p className="text-body-sm max-w-md mx-auto" style={{ color: "rgb(71,85,105)" }}>
+          Payer outflows from public ATAs remain visible on-chain. Privacy applies to the
+          <span style={{ color: "rgb(148,163,184)" }}> receiving address</span>,
+          UTXO routing, and treasury aggregation.
         </p>
       </section>
 
-      {/* Features grid */}
-      <section className="px-6 pb-24" aria-labelledby="features-heading">
-        <h2 id="features-heading" className="text-center text-heading-1 mb-10">
-          Built for privacy-native teams
-        </h2>
-        <div className="mx-auto grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map(({ icon: Icon, title, desc }) => (
-            <GlassPanel key={title} hover padding="md" className="flex flex-col gap-3">
-              <div className="rounded-xl bg-[hsl(var(--brand-primary)/0.1)] p-3 w-fit text-[hsl(var(--brand-primary))]">
-                <Icon className="h-5 w-5" aria-hidden="true" />
+      {/* ── Features ────────────────────────────────────────────────────── */}
+      <section id="features" className="px-6 py-28">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-label mb-3" style={{ color: "#6366f1" }}>Built for privacy-native teams</p>
+            <h2 className="text-heading-1 mb-4" style={{ color: "rgb(248,250,252)" }}>
+              Privacy where it counts
+            </h2>
+            <p className="text-body max-w-lg mx-auto" style={{ color: "rgb(148,163,184)" }}>
+              Every feature is designed around Umbra&apos;s encrypted account model.
+              Settlement is private by default, not by configuration.
+            </p>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {FEATURES.map(({ icon: Icon, title, desc, color, bg, border }) => (
+              <div
+                key={title}
+                className="rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 group"
+                style={{
+                  background: "rgba(14,17,38,0.6)",
+                  backdropFilter: "blur(20px)",
+                  border: `1px solid ${border}`,
+                  boxShadow: `0 4px 24px rgba(0,0,0,0.3)`,
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 40px rgba(0,0,0,0.5), 0 0 30px ${color}30`;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 24px rgba(0,0,0,0.3)";
+                }}
+              >
+                <div
+                  className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl"
+                  style={{ background: bg, border: `1px solid ${border}` }}
+                >
+                  <Icon className="h-5 w-5" style={{ color }} />
+                </div>
+                <h3 className="text-heading-2 mb-2" style={{ color: "rgb(248,250,252)" }}>{title}</h3>
+                <p className="text-body-sm" style={{ color: "rgb(148,163,184)" }}>{desc}</p>
               </div>
-              <h3 className="text-heading-2">{title}</h3>
-              <p className="text-body-sm text-[hsl(var(--text-secondary))]">{desc}</p>
-            </GlassPanel>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-[hsl(var(--surface-border)/0.08)] px-6 py-6 text-center">
-        <p className="text-body-sm text-[hsl(var(--text-muted))]">
-          StealthBooks — Built on{" "}
-          <a href="https://www.umbraprivacy.com" target="_blank" rel="noopener noreferrer" className="text-[hsl(var(--brand-primary))] hover:underline">
+      {/* ── How it works ────────────────────────────────────────────────── */}
+      <section id="how-it-works" className="px-6 py-24">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-label mb-3" style={{ color: "#22d3ee" }}>Workflow</p>
+            <h2 className="text-heading-1" style={{ color: "rgb(248,250,252)" }}>
+              Invoice to private settlement
+            </h2>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map(({ n, title, desc }, i) => (
+              <div key={n} className="relative">
+                {/* Connector */}
+                {i < STEPS.length - 1 && (
+                  <div
+                    className="hidden lg:block absolute top-6 left-full w-5 h-px z-10"
+                    style={{ background: "linear-gradient(90deg, rgba(99,102,241,0.4), transparent)" }}
+                  />
+                )}
+                <div
+                  className="rounded-2xl p-6 h-full"
+                  style={{
+                    background: "rgba(14,17,38,0.55)",
+                    backdropFilter: "blur(20px)",
+                    border: "1px solid rgba(255,255,255,0.065)",
+                    boxShadow: "0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)",
+                  }}
+                >
+                  <div
+                    className="mb-4 text-[0.6875rem] font-bold tracking-widest"
+                    style={{ color: "#6366f1" }}
+                  >
+                    {n}
+                  </div>
+                  <h3 className="text-heading-2 mb-2" style={{ color: "rgb(248,250,252)" }}>{title}</h3>
+                  <p className="text-body-sm" style={{ color: "rgb(148,163,184)" }}>{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ─────────────────────────────────────────────────────────── */}
+      <section className="px-6 py-24">
+        <div className="max-w-2xl mx-auto text-center">
+          <div
+            className="rounded-3xl p-12"
+            style={{
+              background: "linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(34,211,238,0.06) 100%)",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(99,102,241,0.25)",
+              boxShadow: "0 0 60px rgba(99,102,241,0.15)",
+            }}
+          >
+            <h2 className="text-heading-1 mb-4" style={{ color: "rgb(248,250,252)" }}>
+              Ready to go private?
+            </h2>
+            <p className="text-body mb-8" style={{ color: "rgb(148,163,184)" }}>
+              Connect your Solana wallet, register with Umbra, and start issuing private invoices in minutes.
+            </p>
+            <Link href="/dashboard">
+              <button
+                id="cta-start-btn"
+                className="flex items-center gap-2 mx-auto rounded-xl px-8 py-3.5 text-sm font-semibold text-white"
+                style={{
+                  background: "linear-gradient(135deg, #6366f1 0%, #818cf8 100%)",
+                  boxShadow: "0 0 28px rgba(99,102,241,0.5), 0 4px 12px rgba(0,0,0,0.4)",
+                }}
+              >
+                Launch App
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ──────────────────────────────────────────────────────── */}
+      <footer
+        className="px-6 py-8 text-center"
+        style={{ borderTop: "1px solid rgba(255,255,255,0.055)" }}
+      >
+        <p className="text-body-sm" style={{ color: "rgb(71,85,105)" }}>
+          StealthBooks · Built on{" "}
+          <a
+            href="https://umbraprivacy.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="transition-colors"
+            style={{ color: "#6366f1" }}
+          >
             Umbra Privacy
-          </a>{" "}
-          · Solana · USDC
+          </a>
+          {" "}· Solana Devnet
         </p>
       </footer>
-    </main>
+    </div>
   );
 }

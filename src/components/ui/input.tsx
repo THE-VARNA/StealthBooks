@@ -10,24 +10,25 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, error, label, hint, leftIcon, rightElement, id, ...props }, ref) => {
+  ({ className, type, error, label, hint, leftIcon, rightElement, id, style, ...props }, ref) => {
     const inputId = id ?? React.useId();
     const errorId = `${inputId}-error`;
-    const hintId = `${inputId}-hint`;
+    const hintId  = `${inputId}-hint`;
 
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
           <label
             htmlFor={inputId}
-            className="text-label text-[hsl(var(--text-secondary))]"
+            className="text-label"
+            style={{ color: "rgb(148,163,184)" }}
           >
             {label}
           </label>
         )}
         <div className="relative flex items-center">
           {leftIcon && (
-            <span className="absolute left-3 text-[hsl(var(--text-muted))]">
+            <span className="absolute left-3.5" style={{ color: "rgb(71,85,105)" }}>
               {leftIcon}
             </span>
           )}
@@ -37,21 +38,34 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             aria-invalid={!!error}
             aria-describedby={
-              [error ? errorId : null, hint ? hintId : null]
-                .filter(Boolean)
-                .join(" ") || undefined
+              [error ? errorId : null, hint ? hintId : null].filter(Boolean).join(" ") || undefined
             }
             className={cn(
-              "w-full rounded-md border bg-[hsl(var(--surface-overlay)/0.5)] px-3 py-2.5 text-sm text-[hsl(var(--text-primary))] placeholder:text-[hsl(var(--text-muted))]",
-              "border-[hsl(var(--surface-border)/0.12)] transition-all duration-200",
-              "focus:outline-none focus:border-[hsl(var(--brand-primary)/0.5)] focus:ring-1 focus:ring-[hsl(var(--brand-primary)/0.3)]",
-              "hover:border-[hsl(var(--surface-border)/0.2)]",
-              "disabled:cursor-not-allowed disabled:opacity-50",
-              error && "border-[hsl(var(--brand-error)/0.5)] focus:border-[hsl(var(--brand-error)/0.7)] focus:ring-[hsl(var(--brand-error)/0.25)]",
-              leftIcon && "pl-10",
+              "w-full rounded-xl text-sm transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50",
+              leftIcon   && "pl-10",
               rightElement && "pr-10",
               className
             )}
+            style={{
+              padding: "10px 14px",
+              background: "rgba(10,12,28,0.8)",
+              border: error ? "1px solid rgba(239,68,68,0.5)" : "1px solid rgba(255,255,255,0.08)",
+              color: "rgb(248,250,252)",
+              outline: "none",
+              ...style,
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = error ? "rgba(239,68,68,0.7)" : "rgba(99,102,241,0.55)";
+              e.target.style.boxShadow = error
+                ? "0 0 0 3px rgba(239,68,68,0.12)"
+                : "0 0 0 3px rgba(99,102,241,0.12), 0 0 16px rgba(99,102,241,0.08)";
+              props.onFocus?.(e);
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = error ? "rgba(239,68,68,0.5)" : "rgba(255,255,255,0.08)";
+              e.target.style.boxShadow = "none";
+              props.onBlur?.(e);
+            }}
             {...props}
           />
           {rightElement && (
@@ -59,12 +73,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {hint && !error && (
-          <p id={hintId} className="text-[0.75rem] text-[hsl(var(--text-muted))]">
+          <p id={hintId} className="text-[0.75rem]" style={{ color: "rgb(71,85,105)" }}>
             {hint}
           </p>
         )}
         {error && (
-          <p id={errorId} role="alert" className="text-[0.75rem] text-[hsl(var(--brand-error))]">
+          <p id={errorId} role="alert" className="text-[0.75rem]" style={{ color: "#ef4444" }}>
             {error}
           </p>
         )}
