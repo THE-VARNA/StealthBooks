@@ -4,7 +4,31 @@
 
 StealthBooks lets crypto-native businesses issue USDC invoices, receive payment through Umbra's zero-knowledge mixer, aggregate receivables into private encrypted balances, and selectively disclose records to auditors — without exposing counterparties, payment amounts, or treasury behavior on the public ledger.
 
-> Built for the [Umbra Privacy side track](https://superteam.fun/earn/listing/umbra-side-track).
+> Built for the [Umbra Privacy (Encrypt) side track](https://superteam.fun/earn/listing/umbra-side-track).
+
+---
+
+## The Problem & Target Audience
+
+**The Problem:** Crypto-native businesses, DAOs, and freelancers currently face a critical privacy issue: receiving payments on public ledgers like Solana exposes their entire treasury, client list, and revenue streams to anyone with a block explorer. This leads to severe information asymmetry, where competitors can spy on your cash flow and counterparties can see your balance before negotiations.
+
+**Target Users:** Web3 development agencies, B2B SaaS companies operating on Solana, DAOs paying contributors, and independent contractors.
+
+**Use Cases:**
+- Issuing professional B2B invoices for services rendered without exposing the client's identity or payment amounts to the public.
+- Aggregating business revenue into a private, encrypted treasury.
+- Providing scoped, time-limited financial reports (Selective Disclosures) to auditors, investors, or tax professionals without giving them full view of the organization's entire wallet history.
+
+---
+
+## How StealthBooks Utilizes Umbra Privacy (Encrypt)
+
+StealthBooks deeply integrates the **Umbra SDK 2.0 (Encrypt)** to bring true zero-knowledge privacy to Solana B2B payments:
+
+- **Private Settlement:** When a payer settles an invoice via a secure checkout link, the funds are routed through Umbra's `publicBalanceToReceiverClaimableUtxoCreatorFunction`. The payment lands as a completely anonymous UTXO in the `publicReceived` bucket.
+- **Client-Side Scanning:** StealthBooks uses Umbra's `getClaimableUtxoScannerFunction` entirely within the browser. Sensitive wallet scanning cursors are stored locally in IndexedDB and never touch our servers, ensuring complete privacy.
+- **Encrypted Token Accounts (ETA):** Vendors claim their discovered payments directly into an Encrypted Token Account using the `getReceiverClaimableUtxoToEncryptedBalanceClaimerFunction`. The treasury balance is strictly client-side decrypted and entirely invisible on-chain.
+- **Zero-Knowledge Proofs:** All claims are backed by ZK proofs generated in the browser and submitted via the Umbra relayer, cryptographically obfuscating the link between the payer and the receiver.
 
 ---
 
@@ -37,7 +61,7 @@ Auditor receives scoped invoice export
 | State | Zustand (auth) + TanStack Query (server state) |
 | Privacy | Umbra SDK 2.0.3 (ZK provers, UTXO scanner, claimer) |
 | Wallets | Phantom + Solflare (wallet-adapter-react) |
-| Styling | Tailwind CSS + glassmorphism design system |
+| Styling | Tailwind CSS + custom Glassmorphism design system |
 
 ---
 
@@ -56,141 +80,68 @@ Auditor receives scoped invoice export
 
 ---
 
-## Key Design Decisions
-
-### Payment Rail
-`getPublicBalanceToReceiverClaimableUtxoCreatorFunction` — creates receiver-claimable UTXOs funded from the payer's public balance. The vendor scans `result.publicReceived` (not `result.received`) for incoming payments.
-
-### Readiness Check
-The server caches `umbraRegisteredAt` for display only. **Authoritative readiness** comes from `getUserAccountQuerierFunction` on the client, checking:
-- `isUserAccountX25519KeyRegistered`
-- `isUserCommitmentRegistered`
-- `isActiveForAnonymousUsage`
-
-### Checkout Token
-A one-time HMAC-SHA256 token (raw token returned once, only hash stored). Payers access invoices via `/checkout/[publicToken]` — no auth required.
-
-### Claim Scan
-IDB cursors (`wallet:cluster:treeIndex`) prevent rescanning from genesis on every page load. The server receives only `insertionIndex` + `amountMinor` for invoice matching — balances are never sent.
-
-### Disclosure
-Report packages (invoice exports) generated from scoped DB queries. No live X25519 key grants. Share links are time-limited and immediately revocable.
-
----
-
-## Setup
+## Instructions: Build, Test, and Run
 
 ### 1. Prerequisites
 - Node.js ≥ 20
-- PostgreSQL (or Neon serverless)
-- Solana wallet (Phantom or Solflare)
+- PostgreSQL database (Local or Neon Serverless)
+- Solana wallet (Phantom or Solflare) configured for **Devnet**
 
 ### 2. Install
+Clone the repository and install dependencies:
 ```bash
 git clone <repo>
 cd StealthBooks
 npm install
 ```
 
-### 3. Environment
+### 3. Environment Configuration
+Copy the example environment file:
 ```bash
 cp .env.example .env.local
 ```
 
-Fill in:
-
+Fill in the required variables in `.env.local`:
 | Variable | Description |
 |---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
+| `DATABASE_URL` | PostgreSQL connection string (pooler URL if using Neon) |
+| `DIRECT_URL` | Direct connection string for Prisma migrations (if using Neon) |
 | `SESSION_SECRET` | ≥32 char random secret (`openssl rand -base64 32`) |
 | `INVOICE_TOKEN_SALT` | ≥8 char HMAC salt for checkout tokens |
-| `NEXT_PUBLIC_SOLANA_RPC_URL` | Solana RPC endpoint (QuikNode, Helius, etc.) |
-| `NEXT_PUBLIC_UMBRA_INDEXER_URL` | Umbra indexer (default in .env.example) |
-| `NEXT_PUBLIC_UMBRA_RELAYER_URL` | Umbra relayer (default in .env.example) |
-| `NEXT_PUBLIC_USDC_MINT` | USDC mint address (default EPjFWdd5…) |
-| `NEXT_PUBLIC_APP_URL` | Base URL (http://localhost:3000 for dev) |
+| `NEXT_PUBLIC_SOLANA_RPC_URL` | Solana Devnet RPC endpoint |
+| `NEXT_PUBLIC_UMBRA_INDEXER_URL` | Umbra indexer (default provided in .env.example) |
+| `NEXT_PUBLIC_UMBRA_RELAYER_URL` | Umbra relayer (default provided in .env.example) |
+| `NEXT_PUBLIC_USDC_MINT` | USDC Devnet mint address (default provided) |
+| `NEXT_PUBLIC_APP_URL` | Base URL (http://localhost:3000 for local dev) |
 
-### 4. Database
+### 4. Database Setup
+Generate the Prisma client and push the schema to your database:
 ```bash
 npx prisma generate
-npx prisma db push        # dev
-# or
-npx prisma migrate deploy  # production
+npx prisma db push
 ```
+*(Note: If deploying to production, use `npx prisma migrate deploy` instead of `db push`)*
 
-### 5. Dev server
+### 5. Run the Application
+Start the development server:
 ```bash
 npm run dev
 ```
-
-Open [http://localhost:3000](http://localhost:3000).
-
----
-
-## Demo Flow
-
-1. **Connect wallet** → sign-in nonce → session established
-2. **Create org** → complete Umbra registration (3-step on-chain)
-3. **Create invoice** → add line items → approve → share checkout link
-4. **Payer visits checkout** → connects wallet → Umbra UTXO created
-5. **Vendor scans claims** → `publicReceived` bucket → discovered UTXOs matched to invoices
-6. **Claim to ETA** → ZK proof generated → relayer submits tx → balance increases
-7. **View private balance** → ETA queried client-side only
-8. **Withdraw (optional)** → ETA → public ATA (observable on-chain, warned in UI)
-9. **Create disclosure** → scoped share link with passcode → auditor views report
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## Project Structure
+## Application Demo Flow
 
-```
-src/
-├── app/
-│   ├── (app)/               # Authenticated pages (AppShell layout)
-│   │   ├── dashboard/
-│   │   ├── invoices/        # List, new, [invoiceId]
-│   │   ├── claims/          # UTXO scan + claim inbox
-│   │   ├── balances/        # Private ETA balance
-│   │   ├── settlements/     # Withdrawal to public
-│   │   ├── disclosures/     # Selective disclosure
-│   │   └── settings/        # Org + Umbra registration
-│   ├── checkout/[token]/    # Public payer checkout (no auth)
-│   ├── api/
-│   │   ├── auth/            # nonce, verify
-│   │   ├── orgs/[orgId]/    # invoices, readiness, balances, settlements, disclosures
-│   │   ├── claims/          # discoveries, [claimEventId]/confirm
-│   │   ├── payment-intents/ # [id]/confirm
-│   │   └── public/          # invoices/[token], payment-intents
-│   └── page.tsx             # Landing page
-├── components/
-│   ├── ui/                  # Button, Input, Badge, Dialog, Tabs, etc.
-│   └── layout/              # AppShell, GlassPanel, MetricTile, StatusBadge, etc.
-├── features/
-│   ├── auth/                # useWalletAuth (Zustand)
-│   ├── claims/              # useClaimScan, useClaimBatch
-│   ├── orgs/                # useOrgReadiness
-│   └── umbra/               # client, provers, fees
-├── lib/
-│   ├── auth/session.ts      # iron-session config
-│   ├── db/index.ts          # Prisma singleton
-│   ├── env/index.ts         # Zod env validation
-│   ├── formatting/          # USDC, date, address utils
-│   ├── idb/scanCursors.ts   # IDB cursor persistence
-│   └── validation/schemas.ts # All Zod API schemas
-└── prisma/schema.prisma     # 11 tables, full state machines
-```
+To test the application end-to-end, follow this flow:
 
----
-
-## Umbra SDK Reference
-
-- SDK: [@umbra-privacy/sdk@2.0.3](https://sdk.umbraprivacy.com/)
-- Quickstart: https://sdk.umbraprivacy.com/quickstart
-- Creating UTXOs: https://sdk.umbraprivacy.com/sdk/mixer/creating-utxos
-- Fetching UTXOs: https://sdk.umbraprivacy.com/sdk/mixer/fetching-utxos
-- Registration: https://sdk.umbraprivacy.com/sdk/registration
-- Query: https://sdk.umbraprivacy.com/sdk/query
-- Pricing: https://sdk.umbraprivacy.com/pricing
+1. **Sign In:** Connect your Phantom/Solflare wallet to authenticate and establish a secure session.
+2. **Onboarding:** Create your organization. Navigate to Settings to complete the **Umbra Registration** (a 3-step on-chain process to register your X25519 encryption key).
+3. **Issue Invoice:** Go to Invoices, create a new USDC invoice with line items, approve it, and copy the private checkout link.
+4. **Payer Checkout:** Open the checkout link in an incognito window or different browser profile. Connect a *different* wallet (representing the payer), and pay the invoice. The funds will be routed anonymously through Umbra.
+5. **Scan & Claim:** Return to your vendor account, go to the Claims Inbox, and click **Scan Now**. The app will scan your `publicReceived` bucket client-side, discover the UTXO, and allow you to claim it to your Encrypted Token Account (ETA).
+6. **Private Balance:** Navigate to Private Balance to view your decrypted ETA treasury balance securely within your browser.
+7. **Selective Disclosure:** Go to Disclosures to generate a scoped, passcode-protected share link of your invoice history to share with an auditor.
 
 ---
 
