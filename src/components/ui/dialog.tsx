@@ -46,7 +46,7 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm p-1 text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--brand-primary))]">
+      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm p-1 text-[rgb(71,85,105)] hover:text-[rgb(248,250,252)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6366f1]">
         <X className="h-4 w-4" aria-hidden="true" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
@@ -66,7 +66,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-heading-2 text-[hsl(var(--text-primary))]", className)}
+    className={cn("text-heading-2 text-[rgb(248,250,252)]", className)}
     {...props}
   />
 ));
@@ -78,7 +78,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-body-sm text-[hsl(var(--text-secondary))]", className)}
+    className={cn("text-body-sm text-[rgb(148,163,184)]", className)}
     {...props}
   />
 ));

@@ -6,8 +6,6 @@ import { GlassPanel } from "@/components/layout/GlassPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-
-
 export default function SettlementsPage() {
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
@@ -17,14 +15,19 @@ export default function SettlementsPage() {
       />
 
       {/* Warning */}
-      <GlassPanel padding="md" className="flex items-start gap-3 border border-[hsl(var(--brand-warning)/0.25)]">
-        <AlertTriangle className="h-5 w-5 text-[hsl(var(--brand-warning))] shrink-0 mt-0.5" aria-hidden="true" />
+      <GlassPanel
+        padding="md"
+        className="flex items-start gap-3"
+        style={{ border: "1px solid rgba(245,158,11,0.25)", boxShadow: "0 0 30px rgba(245,158,11,0.1)" }}
+      >
+        <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#f59e0b" }} aria-hidden="true" />
         <div>
-          <p className="text-body font-semibold text-[hsl(var(--brand-warning))]">
+          <p className="text-body font-semibold" style={{ color: "#f59e0b" }}>
             Withdrawal is a public transaction
           </p>
-          <p className="text-body-sm text-[hsl(var(--text-secondary))] mt-1">
-            Moving funds from your encrypted balance to a public address creates an on-chain transaction visible to everyone. The source (ETA) and destination (public ATA) are observable. Use this only when necessary.
+          <p className="text-body-sm mt-1" style={{ color: "rgb(148,163,184)" }}>
+            Moving funds from your encrypted balance to a public address creates an on-chain transaction visible to everyone.
+            The source (ETA) and destination (public ATA) are observable. Use this only when necessary.
           </p>
         </div>
       </GlassPanel>
@@ -32,7 +35,7 @@ export default function SettlementsPage() {
       {/* Withdrawal form */}
       <div className="grid gap-6 lg:grid-cols-2">
         <GlassPanel padding="lg">
-          <h2 className="text-heading-2 mb-5">New Withdrawal</h2>
+          <h2 className="text-heading-2 mb-5" style={{ color: "rgb(248,250,252)" }}>New Withdrawal</h2>
           <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
             <Input
               id="withdrawal-destination"
@@ -57,8 +60,8 @@ export default function SettlementsPage() {
 
         {/* Withdrawal history placeholder */}
         <GlassPanel padding="md">
-          <h2 className="text-heading-2 mb-4">Recent Withdrawals</h2>
-          <p className="text-body-sm text-[hsl(var(--text-muted))]">
+          <h2 className="text-heading-2 mb-4" style={{ color: "rgb(248,250,252)" }}>Recent Withdrawals</h2>
+          <p className="text-body-sm" style={{ color: "rgb(71,85,105)" }}>
             No withdrawals yet. Withdrawal history is logged locally — amounts are not stored server-side for privacy.
           </p>
         </GlassPanel>

@@ -124,7 +124,7 @@ export default function NewInvoicePage() {
           {/* Line Items */}
           <div className="lg:col-span-2 flex flex-col gap-4">
             <GlassPanel padding="none" className="overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-[hsl(var(--surface-border)/0.08)]">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(255,255,255,0.065)]">
                 <h2 className="text-heading-2">Line Items</h2>
                 <Button
                   id="new-invoice-add-line-btn"
@@ -139,13 +139,13 @@ export default function NewInvoicePage() {
               </div>
 
               {/* Header row */}
-              <div className="grid grid-cols-[1fr_80px_100px_36px] gap-3 px-5 py-2.5 border-b border-[hsl(var(--surface-border)/0.06)]">
+              <div className="grid grid-cols-[1fr_80px_100px_36px] gap-3 px-5 py-2.5 border-b border-[rgba(255,255,255,0.06)]">
                 {["Description", "Qty", "Unit Price (USDC)", ""].map((h) => (
-                  <span key={h} className="text-label text-[hsl(var(--text-muted))]">{h}</span>
+                  <span key={h} className="text-label text-[rgb(71,85,105)]">{h}</span>
                 ))}
               </div>
 
-              <div className="flex flex-col divide-y divide-[hsl(var(--surface-border)/0.06)]">
+              <div className="flex flex-col divide-y divide-[rgba(255,255,255,0.06)]">
                 {fields.map((field, i) => {
                   const lineTotal = computeLineTotal(
                     Number(watchedItems[i]?.quantity),
@@ -177,7 +177,7 @@ export default function NewInvoicePage() {
                           {...register(`lineItems.${i}.unitPrice`)}
                         />
                         {lineTotal > 0 && (
-                          <p className="text-[0.7rem] text-right text-[hsl(var(--text-muted))]">
+                          <p className="text-[0.7rem] text-right text-[rgb(71,85,105)]">
                             = {formatUsdcCurrency(parseUsdc(lineTotal.toFixed(6)))}
                           </p>
                         )}
@@ -192,7 +192,7 @@ export default function NewInvoicePage() {
                         aria-label="Remove line item"
                         className="mt-0.5"
                       >
-                        <Trash2 className="h-4 w-4 text-[hsl(var(--brand-error))]" aria-hidden="true" />
+                        <Trash2 className="h-4 w-4 text-[#ef4444]" aria-hidden="true" />
                       </Button>
                     </div>
                   );
@@ -200,7 +200,7 @@ export default function NewInvoicePage() {
               </div>
 
               {errors.lineItems?.root && (
-                <p className="px-5 pb-3 text-sm text-[hsl(var(--brand-error))]">
+                <p className="px-5 pb-3 text-sm text-[#ef4444]">
                   {errors.lineItems.root.message}
                 </p>
               )}
@@ -217,12 +217,12 @@ export default function NewInvoicePage() {
                 {...register("memo")}
               />
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="new-invoice-internal-notes" className="text-label text-[hsl(var(--text-secondary))]">
+                <label htmlFor="new-invoice-internal-notes" className="text-label text-[rgb(148,163,184)]">
                   Internal Notes (private)
                 </label>
                 <textarea
                   id="new-invoice-internal-notes"
-                  className="w-full rounded-md border border-[hsl(var(--surface-border)/0.12)] bg-[hsl(var(--surface-overlay)/0.5)] px-3 py-2.5 text-sm text-[hsl(var(--text-primary))] placeholder:text-[hsl(var(--text-muted))] focus:outline-none focus:border-[hsl(var(--brand-primary)/0.5)] focus:ring-1 focus:ring-[hsl(var(--brand-primary)/0.3)] transition-all duration-200 resize-none min-h-[80px]"
+                  className="w-full rounded-md border border-[rgba(255,255,255,0.09)] bg-[rgba(20,24,54,0.5)] px-3 py-2.5 text-sm text-[rgb(248,250,252)] placeholder:text-[rgb(71,85,105)] focus:outline-none focus:border-[rgba(99,102,241,0.5)] focus:ring-1 focus:ring-[rgba(99,102,241,0.3)] transition-all duration-200 resize-none min-h-[80px]"
                   placeholder="Never shown to payer or in disclosures"
                   {...register("internalNotes")}
                 />
@@ -243,22 +243,22 @@ export default function NewInvoicePage() {
 
               <div className="flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-body-sm text-[hsl(var(--text-secondary))]">Subtotal</span>
-                  <span className="text-body font-semibold text-[hsl(var(--text-primary))]">
+                  <span className="text-body-sm text-[rgb(148,163,184)]">Subtotal</span>
+                  <span className="text-body font-semibold text-[rgb(248,250,252)]">
                     {formatUsdcCurrency(parseUsdc(subtotal.toFixed(6)))}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-body-sm text-[hsl(var(--text-secondary))]">
+                  <span className="text-body-sm text-[rgb(148,163,184)]">
                     Umbra fee (~0.21%)
                   </span>
-                  <span className="text-body-sm text-[hsl(var(--text-muted))]">
+                  <span className="text-body-sm text-[rgb(71,85,105)]">
                     {formatUsdcCurrency(parseUsdc(protocolFee.toFixed(6)))}
                   </span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
-                  <span className="text-body font-semibold text-[hsl(var(--text-primary))]">
+                  <span className="text-body font-semibold text-[rgb(248,250,252)]">
                     Total (USDC)
                   </span>
                   <span className="text-heading-2 gradient-text">
@@ -267,14 +267,14 @@ export default function NewInvoicePage() {
                 </div>
               </div>
 
-              <div className="rounded-lg bg-[hsl(var(--surface-overlay)/0.4)] px-3 py-2.5">
-                <p className="text-body-sm text-[hsl(var(--text-muted))]">
+              <div className="rounded-lg bg-[rgba(20,24,54,0.4)] px-3 py-2.5">
+                <p className="text-body-sm text-[rgb(71,85,105)]">
                   After creation, approve the invoice to generate a private checkout link to share with your payer.
                 </p>
               </div>
 
               {error && (
-                <p role="alert" className="text-sm text-[hsl(var(--brand-error))]">{error}</p>
+                <p role="alert" className="text-sm text-[#ef4444]">{error}</p>
               )}
 
               <Button

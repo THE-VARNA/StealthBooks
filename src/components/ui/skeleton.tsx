@@ -7,7 +7,7 @@ function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>)
       role="status"
       aria-label="Loading..."
       className={cn(
-        "animate-pulse rounded-md bg-[hsl(var(--surface-overlay))]",
+        "animate-pulse rounded-md bg-[rgba(20,24,54,0.6)]",
         className
       )}
       {...props}

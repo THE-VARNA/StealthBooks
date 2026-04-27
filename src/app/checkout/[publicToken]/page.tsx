@@ -24,8 +24,8 @@ export default async function CheckoutPage({ params }: PageProps) {
     return (
       <div className="min-h-dvh flex items-center justify-center p-6">
         <div className="glass rounded-2xl p-8 max-w-md w-full text-center">
-          <p className="text-heading-2 text-[hsl(var(--brand-error))] mb-2">Invoice unavailable</p>
-          <p className="text-body-sm text-[hsl(var(--text-secondary))]">{data.error}</p>
+          <p className="text-heading-2 text-[#ef4444] mb-2">Invoice unavailable</p>
+          <p className="text-body-sm text-[rgb(148,163,184)]">{data.error}</p>
         </div>
       </div>
     );

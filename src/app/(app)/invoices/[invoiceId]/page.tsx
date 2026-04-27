@@ -63,35 +63,35 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 flex flex-col gap-6">
           <GlassPanel padding="none" className="overflow-hidden">
-            <div className="px-5 py-4 border-b border-[hsl(var(--surface-border)/0.08)] flex items-center justify-between">
+            <div className="px-5 py-4 border-b border-[rgba(255,255,255,0.065)] flex items-center justify-between">
               <h2 className="text-heading-2">Line Items</h2>
               <InvoiceStatusBadge status={invoice.status} />
             </div>
             <table className="w-full" aria-label="Invoice line items">
               <thead>
-                <tr className="border-b border-[hsl(var(--surface-border)/0.06)]">
+                <tr className="border-b border-[rgba(255,255,255,0.06)]">
                   {["Description", "Qty", "Unit Price", "Amount"].map((h) => (
-                    <th key={h} className="px-5 py-2.5 text-left text-label text-[hsl(var(--text-muted))]">{h}</th>
+                    <th key={h} className="px-5 py-2.5 text-left text-label text-[rgb(71,85,105)]">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[hsl(var(--surface-border)/0.06)]">
+              <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
                 {invoice.lineItems.map((li) => (
-                  <tr key={li.id} className="hover:bg-[hsl(var(--surface-overlay)/0.2)] transition-colors">
-                    <td className="px-5 py-3 text-body text-[hsl(var(--text-primary))]">{li.description}</td>
-                    <td className="px-5 py-3 text-body-sm text-[hsl(var(--text-secondary))]">{li.quantity.toString()}</td>
+                  <tr key={li.id} className="hover:bg-[rgba(20,24,54,0.2)] transition-colors">
+                    <td className="px-5 py-3 text-body text-[rgb(248,250,252)]">{li.description}</td>
+                    <td className="px-5 py-3 text-body-sm text-[rgb(148,163,184)]">{li.quantity.toString()}</td>
                     <td className="px-5 py-3 text-mono text-body-sm">{formatUsdcCurrency(li.unitPrice)}</td>
                     <td className="px-5 py-3 text-mono font-semibold">{formatUsdcCurrency(li.amountMinor)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <div className="border-t border-[hsl(var(--surface-border)/0.1)] px-5 py-4 flex flex-col gap-2 items-end">
-              <div className="flex gap-8 text-body-sm text-[hsl(var(--text-secondary))]">
+            <div className="border-t border-[rgba(255,255,255,0.08)] px-5 py-4 flex flex-col gap-2 items-end">
+              <div className="flex gap-8 text-body-sm text-[rgb(148,163,184)]">
                 <span>Subtotal</span>
-                <span className="font-semibold text-[hsl(var(--text-primary))]">{formatUsdcCurrency(invoice.subtotalMinor)}</span>
+                <span className="font-semibold text-[rgb(248,250,252)]">{formatUsdcCurrency(invoice.subtotalMinor)}</span>
               </div>
-              <div className="flex gap-8 text-body-sm text-[hsl(var(--text-muted))]">
+              <div className="flex gap-8 text-body-sm text-[rgb(71,85,105)]">
                 <span>Umbra fee (~0.21%)</span>
                 <span>{formatUsdcCurrency(invoice.protocolFeeMinor)}</span>
               </div>
@@ -104,13 +104,13 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
           </GlassPanel>
 
           {invoice.status === "OPEN" && (
-            <GlassPanel padding="md" className="border border-[hsl(var(--brand-success)/0.2)] flex items-center gap-4">
-              <Shield className="h-5 w-5 text-[hsl(var(--brand-success))] shrink-0" />
+            <GlassPanel padding="md" className="border border-[rgba(16,185,129,0.2)] flex items-center gap-4">
+              <Shield className="h-5 w-5 text-[#10b981] shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-body font-semibold">Checkout link ready</p>
-                <p className="text-body-sm text-[hsl(var(--text-muted))]">Share with your payer to initiate Umbra payment</p>
+                <p className="text-body-sm text-[rgb(71,85,105)]">Share with your payer to initiate Umbra payment</p>
                 {invoice.publicTokenExpiresAt && (
-                  <p className="text-body-sm text-[hsl(var(--text-muted))]">Expires: {formatDate(invoice.publicTokenExpiresAt)}</p>
+                  <p className="text-body-sm text-[rgb(71,85,105)]">Expires: {formatDate(invoice.publicTokenExpiresAt)}</p>
                 )}
               </div>
             </GlassPanel>
@@ -128,8 +128,8 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
             ["Created", formatDate(invoice.createdAt)],
           ].map(([label, value]) => (
             <div key={label} className="flex flex-col gap-0.5">
-              <span className="text-label text-[hsl(var(--text-muted))]">{label}</span>
-              <span className="text-body text-[hsl(var(--text-primary))]">{value}</span>
+              <span className="text-label text-[rgb(71,85,105)]">{label}</span>
+              <span className="text-body text-[rgb(248,250,252)]">{value}</span>
             </div>
           ))}
         </GlassPanel>

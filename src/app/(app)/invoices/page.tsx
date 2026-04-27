@@ -3,10 +3,11 @@ import Link from "next/link";
 import { Plus, FileText } from "lucide-react";
 import { SectionToolbar } from "@/components/layout/SectionToolbar";
 import { GlassPanel } from "@/components/layout/GlassPanel";
-import { EmptyStatePanel } from "@/components/layout/EmptyStatePanel";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Invoices | StealthBooks" };
+
+const TABLE_HEADERS = ["#", "Counterparty / Memo", "Amount", "Status", "Actions"];
 
 export default function InvoicesPage() {
   return (
@@ -25,18 +26,23 @@ export default function InvoicesPage() {
       />
 
       <GlassPanel padding="none" className="overflow-hidden">
-        <div className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-0 border-b border-[hsl(var(--surface-border)/0.08)]">
-          {["#", "Counterparty / Memo", "Amount", "Status", "Actions"].map((h) => (
-            <div key={h} className="px-5 py-3 text-label text-[hsl(var(--text-muted))]">{h}</div>
+        {/* Table header */}
+        <div className="grid grid-cols-[3rem_1fr_9rem_8rem_7rem]"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.065)" }}>
+          {TABLE_HEADERS.map((h) => (
+            <div key={h} className="px-5 py-3 text-label" style={{ color: "rgb(71,85,105)" }}>{h}</div>
           ))}
         </div>
-        <div className="py-16 flex flex-col items-center gap-4 text-center">
-          <div className="rounded-2xl bg-[hsl(var(--surface-overlay))] p-4 text-[hsl(var(--text-muted))]">
+
+        {/* Empty state */}
+        <div className="flex flex-col items-center gap-5 py-20 text-center px-8">
+          <div className="rounded-2xl p-4"
+            style={{ background: "rgba(20,24,54,0.6)", color: "rgb(71,85,105)", border: "1px solid rgba(255,255,255,0.065)" }}>
             <FileText className="h-8 w-8" aria-hidden="true" />
           </div>
-          <div className="flex flex-col gap-1">
-            <p className="text-heading-2 text-[hsl(var(--text-primary))]">No invoices yet</p>
-            <p className="max-w-sm text-body-sm text-[hsl(var(--text-muted))]">
+          <div className="flex flex-col gap-1.5">
+            <p className="text-heading-2" style={{ color: "rgb(248,250,252)" }}>No invoices yet</p>
+            <p className="max-w-sm text-body-sm" style={{ color: "rgb(71,85,105)" }}>
               Create your first invoice to start receiving private USDC payments through Umbra.
             </p>
           </div>

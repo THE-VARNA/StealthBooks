@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
-
 export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
@@ -24,8 +23,8 @@ export default function SettingsPage() {
 
         <TabsContent value="org">
           <GlassPanel padding="lg" className="max-w-xl">
-            <h2 className="text-heading-2 mb-5 flex items-center gap-2">
-              <Settings className="h-4 w-4 text-[hsl(var(--brand-primary))]" />
+            <h2 className="text-heading-2 mb-5 flex items-center gap-2" style={{ color: "rgb(248,250,252)" }}>
+              <Settings className="h-4 w-4" style={{ color: "#6366f1" }} />
               Organization
             </h2>
             <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
@@ -38,12 +37,12 @@ export default function SettingsPage() {
 
         <TabsContent value="privacy">
           <div className="flex flex-col gap-5 max-w-xl">
-            <GlassPanel padding="lg">
-              <h2 className="text-heading-2 mb-4 flex items-center gap-2">
-                <Shield className="h-4 w-4 text-[hsl(var(--brand-accent))]" />
+            <GlassPanel padding="lg" glow="cyan">
+              <h2 className="text-heading-2 mb-4 flex items-center gap-2" style={{ color: "rgb(248,250,252)" }}>
+                <Shield className="h-4 w-4" style={{ color: "#22d3ee" }} />
                 Umbra Registration
               </h2>
-              <p className="text-body-sm text-[hsl(var(--text-secondary))] mb-4">
+              <p className="text-body-sm mb-4" style={{ color: "rgb(148,163,184)" }}>
                 Registration is a one-time, idempotent 3-step process performed on-chain. It must be completed before your organization can receive private USDC payments.
               </p>
               <div className="flex flex-col gap-3 mb-5">
@@ -53,20 +52,27 @@ export default function SettingsPage() {
                   { step: "3", label: "Activate for anonymous usage", done: false },
                 ].map(({ step, label, done }) => (
                   <div key={step} className="flex items-center gap-3">
-                    <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${done ? "bg-[hsl(var(--brand-success))] text-white" : "bg-[hsl(var(--surface-overlay))] text-[hsl(var(--text-muted))]"}`}>
+                    <div
+                      className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
+                      style={{
+                        background: done ? "#10b981" : "rgba(20,24,54,0.8)",
+                        color: done ? "#fff" : "rgb(71,85,105)",
+                        border: done ? "none" : "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
                       {done ? "✓" : step}
                     </div>
-                    <span className="text-body-sm text-[hsl(var(--text-primary))]">{label}</span>
+                    <span className="text-body-sm" style={{ color: "rgb(248,250,252)" }}>{label}</span>
                     <Badge variant={done ? "success" : "muted"} className="ml-auto">{done ? "Done" : "Pending"}</Badge>
                   </div>
                 ))}
               </div>
-              <Button id="settings-register-umbra-btn" size="md">Begin Registration</Button>
+              <Button id="settings-register-umbra-btn" size="md" variant="accent">Begin Registration</Button>
             </GlassPanel>
 
             <GlassPanel padding="lg">
-              <h2 className="text-heading-2 mb-4">Scanner Cursors</h2>
-              <p className="text-body-sm text-[hsl(var(--text-secondary))] mb-4">
+              <h2 className="text-heading-2 mb-4" style={{ color: "rgb(248,250,252)" }}>Scanner Cursors</h2>
+              <p className="text-body-sm mb-4" style={{ color: "rgb(148,163,184)" }}>
                 Scanning cursors track the last scanned UTXO insertion index per tree. They are stored in this browser only and are never sent to the server.
               </p>
               <Button id="settings-reset-cursors-btn" variant="destructive" size="sm">Reset Scan Cursors (Full Rescan)</Button>
@@ -76,11 +82,11 @@ export default function SettingsPage() {
 
         <TabsContent value="members">
           <GlassPanel padding="lg" className="max-w-xl">
-            <h2 className="text-heading-2 mb-4 flex items-center gap-2">
-              <Users className="h-4 w-4 text-[hsl(var(--brand-primary))]" />
+            <h2 className="text-heading-2 mb-4 flex items-center gap-2" style={{ color: "rgb(248,250,252)" }}>
+              <Users className="h-4 w-4" style={{ color: "#6366f1" }} />
               Members
             </h2>
-            <p className="text-body-sm text-[hsl(var(--text-secondary))] mb-5">
+            <p className="text-body-sm mb-5" style={{ color: "rgb(148,163,184)" }}>
               Invite team members by Solana wallet address. Roles: Owner (full access), Finance Operator (can create/approve invoices), Reviewer (read-only).
             </p>
             <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
@@ -89,7 +95,7 @@ export default function SettingsPage() {
               <Button id="settings-invite-btn" type="submit" size="md" disabled>Invite Member</Button>
             </form>
             <Separator className="my-5" />
-            <p className="text-body-sm text-[hsl(var(--text-muted))]">No members yet.</p>
+            <p className="text-body-sm" style={{ color: "rgb(71,85,105)" }}>No members yet.</p>
           </GlassPanel>
         </TabsContent>
       </Tabs>

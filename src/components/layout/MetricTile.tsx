@@ -11,23 +11,31 @@ interface MetricTileProps {
   trend?: { value: string; positive: boolean };
   loading?: boolean;
   className?: string;
+  accentColor?: string;
 }
 
-export function MetricTile({
-  label,
-  value,
-  subtext,
-  icon,
-  trend,
-  loading = false,
-  className,
-}: MetricTileProps) {
+export function MetricTile({ label, value, subtext, icon, trend, loading = false, className, accentColor = "#6366f1" }: MetricTileProps) {
   return (
-    <GlassPanel hover className={cn("flex flex-col gap-3", className)}>
-      <div className="flex items-start justify-between">
-        <p className="text-label text-[hsl(var(--text-muted))]">{label}</p>
+    <div
+      className={cn("relative overflow-hidden rounded-2xl p-5 hover-lift", className)}
+      style={{
+        background: "rgba(14,17,38,0.6)",
+        backdropFilter: "blur(20px)",
+        border: `1px solid ${accentColor}30`,
+        boxShadow: `0 0 24px ${accentColor}20, 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)`,
+      }}
+    >
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-px"
+        style={{ background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)` }} />
+
+      <div className="flex items-start justify-between mb-3">
+        <p className="text-label" style={{ color: "rgb(71,85,105)" }}>{label}</p>
         {icon && (
-          <span className="rounded-lg bg-[hsl(var(--surface-overlay))] p-2 text-[hsl(var(--brand-primary))]">
+          <span
+            className="rounded-xl p-2"
+            style={{ background: `${accentColor}15`, border: `1px solid ${accentColor}30`, color: accentColor }}
+          >
             {icon}
           </span>
         )}
@@ -35,33 +43,26 @@ export function MetricTile({
 
       {loading ? (
         <>
-          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-8 w-32 mb-1.5" />
           <Skeleton className="h-3 w-20" />
         </>
       ) : (
         <>
-          <div className="text-heading-1 font-bold text-[hsl(var(--text-primary))]">
+          <div className="text-[1.75rem] font-bold tracking-tight leading-none mb-1.5"
+            style={{ color: "rgb(248,250,252)", fontVariantNumeric: "tabular-nums" }}>
             {value}
           </div>
           <div className="flex items-center gap-2">
-            {subtext && (
-              <p className="text-body-sm text-[hsl(var(--text-muted))]">{subtext}</p>
-            )}
+            {subtext && <p className="text-body-sm" style={{ color: "rgb(71,85,105)" }}>{subtext}</p>}
             {trend && (
-              <span
-                className={cn(
-                  "text-xs font-semibold",
-                  trend.positive
-                    ? "text-[hsl(var(--brand-success))]"
-                    : "text-[hsl(var(--brand-error))]"
-                )}
-              >
+              <span className="text-xs font-semibold"
+                style={{ color: trend.positive ? "#10b981" : "#ef4444" }}>
                 {trend.positive ? "↑" : "↓"} {trend.value}
               </span>
             )}
           </div>
         </>
       )}
-    </GlassPanel>
+    </div>
   );
 }

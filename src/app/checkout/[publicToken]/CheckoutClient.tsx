@@ -112,10 +112,10 @@ export function CheckoutClient({ invoice, publicToken }: { invoice: InvoiceData;
   const currentStepIdx = stepIndex(step);
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center p-6 bg-[hsl(var(--surface-base))]">
+    <div className="min-h-dvh flex flex-col items-center justify-center p-6 bg-[rgb(5,7,18)]">
       {/* Header */}
       <div className="w-full max-w-lg mb-6 flex items-center gap-2.5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[hsl(var(--brand-primary))] to-[hsl(var(--brand-accent))]">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#6366f1] to-[#22d3ee]">
           <Shield className="h-3.5 w-3.5 text-white" />
         </div>
         <span className="text-heading-2 gradient-text">StealthBooks</span>
@@ -127,21 +127,21 @@ export function CheckoutClient({ invoice, publicToken }: { invoice: InvoiceData;
         <GlassPanel padding="lg">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="text-label text-[hsl(var(--text-muted))]">Invoice from</p>
-              <p className="text-heading-2 text-[hsl(var(--text-primary))]">{invoice.orgName}</p>
+              <p className="text-label text-[rgb(71,85,105)]">Invoice from</p>
+              <p className="text-heading-2 text-[rgb(248,250,252)]">{invoice.orgName}</p>
             </div>
-            <p className="text-mono text-xs text-[hsl(var(--text-muted))]">{invoice.invoiceNumber}</p>
+            <p className="text-mono text-xs text-[rgb(71,85,105)]">{invoice.invoiceNumber}</p>
           </div>
 
           {invoice.memo && (
-            <p className="text-body-sm text-[hsl(var(--text-secondary))] mb-4">{invoice.memo}</p>
+            <p className="text-body-sm text-[rgb(148,163,184)] mb-4">{invoice.memo}</p>
           )}
 
           <div className="flex flex-col gap-2 mb-4">
             {invoice.lineItems.map((li, i) => (
               <div key={i} className="flex items-center justify-between text-body-sm">
-                <span className="text-[hsl(var(--text-secondary))]">{li.description}</span>
-                <span className="text-mono text-[hsl(var(--text-primary))] font-medium">
+                <span className="text-[rgb(148,163,184)]">{li.description}</span>
+                <span className="text-mono text-[rgb(248,250,252)] font-medium">
                   {formatUsdcCurrency(BigInt(li.amountMinor))}
                 </span>
               </div>
@@ -151,11 +151,11 @@ export function CheckoutClient({ invoice, publicToken }: { invoice: InvoiceData;
           <Separator className="mb-4" />
 
           <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between text-body-sm text-[hsl(var(--text-muted))]">
+            <div className="flex justify-between text-body-sm text-[rgb(71,85,105)]">
               <span>Subtotal</span>
               <span>{formatUsdcCurrency(subtotalMinor)}</span>
             </div>
-            <div className="flex justify-between text-body-sm text-[hsl(var(--text-muted))]">
+            <div className="flex justify-between text-body-sm text-[rgb(71,85,105)]">
               <span>Umbra fee (~0.21%)</span>
               <span>{formatUsdcCurrency(protocolFeeMinor)}</span>
             </div>
@@ -168,34 +168,34 @@ export function CheckoutClient({ invoice, publicToken }: { invoice: InvoiceData;
 
         {/* Privacy notice */}
         <GlassPanel padding="md" className="flex items-start gap-3">
-          <Lock className="h-4 w-4 text-[hsl(var(--brand-accent))] shrink-0 mt-0.5" />
-          <p className="text-body-sm text-[hsl(var(--text-secondary))]">
+          <Lock className="h-4 w-4 text-[#22d3ee] shrink-0 mt-0.5" />
+          <p className="text-body-sm text-[rgb(148,163,184)]">
             Payment flows through Umbra&apos;s mixer. Your payment reaches the vendor&apos;s encrypted account — not a traceable public address. Your wallet outflow is visible on-chain.
           </p>
         </GlassPanel>
 
         {/* Payment flow */}
         {isAlreadyPaid ? (
-          <GlassPanel padding="lg" className="text-center border border-[hsl(var(--brand-success)/0.3)]">
-            <CheckCircle className="h-10 w-10 text-[hsl(var(--brand-success))] mx-auto mb-3" />
-            <p className="text-heading-2 text-[hsl(var(--brand-success))]">Already paid</p>
-            <p className="text-body-sm text-[hsl(var(--text-muted))] mt-1">This invoice has been settled.</p>
+          <GlassPanel padding="lg" className="text-center border border-[rgba(16,185,129,0.3)]">
+            <CheckCircle className="h-10 w-10 text-[#10b981] mx-auto mb-3" />
+            <p className="text-heading-2 text-[#10b981]">Already paid</p>
+            <p className="text-body-sm text-[rgb(71,85,105)] mt-1">This invoice has been settled.</p>
           </GlassPanel>
         ) : step === "confirmed" ? (
-          <GlassPanel padding="lg" className="text-center border border-[hsl(var(--brand-success)/0.3)]">
-            <CheckCircle className="h-10 w-10 text-[hsl(var(--brand-success))] mx-auto mb-3" />
-            <p className="text-heading-2 text-[hsl(var(--brand-success))]">Payment submitted</p>
-            <p className="text-body-sm text-[hsl(var(--text-muted))] mt-1">
+          <GlassPanel padding="lg" className="text-center border border-[rgba(16,185,129,0.3)]">
+            <CheckCircle className="h-10 w-10 text-[#10b981] mx-auto mb-3" />
+            <p className="text-heading-2 text-[#10b981]">Payment submitted</p>
+            <p className="text-body-sm text-[rgb(71,85,105)] mt-1">
               Your USDC is flowing through Umbra to the vendor&apos;s encrypted account.
             </p>
           </GlassPanel>
         ) : step === "error" ? (
-          <GlassPanel padding="lg" className="border border-[hsl(var(--brand-error)/0.3)]">
+          <GlassPanel padding="lg" className="border border-[rgba(239,68,68,0.3)]">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-[hsl(var(--brand-error))] shrink-0" />
+              <AlertTriangle className="h-5 w-5 text-[#ef4444] shrink-0" />
               <div>
-                <p className="text-body font-semibold text-[hsl(var(--brand-error))]">Payment failed</p>
-                {errorMsg && <p className="text-body-sm text-[hsl(var(--text-muted))] mt-1">{errorMsg}</p>}
+                <p className="text-body font-semibold text-[#ef4444]">Payment failed</p>
+                {errorMsg && <p className="text-body-sm text-[rgb(71,85,105)] mt-1">{errorMsg}</p>}
               </div>
             </div>
             <Button id="checkout-retry-btn" variant="outline" size="sm" className="mt-4" onClick={() => setStep(connected ? "register-check" : "connect")}>
@@ -206,7 +206,7 @@ export function CheckoutClient({ invoice, publicToken }: { invoice: InvoiceData;
           <GlassPanel padding="lg" className="flex flex-col gap-5">
             {/* Steps progress */}
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between text-body-sm text-[hsl(var(--text-muted))]">
+              <div className="flex items-center justify-between text-body-sm text-[rgb(71,85,105)]">
                 <span>{STEPS[currentStepIdx]?.label ?? "Ready"}</span>
                 <span>{progressPct}%</span>
               </div>
@@ -217,17 +217,17 @@ export function CheckoutClient({ invoice, publicToken }: { invoice: InvoiceData;
               {STEPS.map((s, i) => (
                 <div key={s.id} className="flex items-center gap-2.5">
                   <div className={`h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                    i < currentStepIdx ? "bg-[hsl(var(--brand-success))] text-white" :
-                    i === currentStepIdx ? "bg-[hsl(var(--brand-primary))] text-white animate-pulse" :
-                    "bg-[hsl(var(--surface-overlay))] text-[hsl(var(--text-muted))]"
+                    i < currentStepIdx ? "bg-[#10b981] text-white" :
+                    i === currentStepIdx ? "bg-[#6366f1] text-white animate-pulse" :
+                    "bg-[rgba(20,24,54,0.6)] text-[rgb(71,85,105)]"
                   }`}>
                     {i < currentStepIdx ? "✓" : i + 1}
                   </div>
-                  <span className={`text-body-sm ${i === currentStepIdx ? "text-[hsl(var(--text-primary))] font-medium" : "text-[hsl(var(--text-muted))]"}`}>
+                  <span className={`text-body-sm ${i === currentStepIdx ? "text-[rgb(248,250,252)] font-medium" : "text-[rgb(71,85,105)]"}`}>
                     {s.label}
                   </span>
                   {i === currentStepIdx && ["proving", "submitting"].includes(s.id) && (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-[hsl(var(--brand-primary))] ml-auto" />
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-[#6366f1] ml-auto" />
                   )}
                 </div>
               ))}
@@ -235,7 +235,7 @@ export function CheckoutClient({ invoice, publicToken }: { invoice: InvoiceData;
 
             {!connected ? (
               <div className="flex flex-col items-center gap-2">
-                <p className="text-body-sm text-[hsl(var(--text-muted))]">Connect your Solana wallet to pay</p>
+                <p className="text-body-sm text-[rgb(71,85,105)]">Connect your Solana wallet to pay</p>
                 <WalletMultiButton style={{ background: "hsl(255 107 53)", borderRadius: "8px" }} />
               </div>
             ) : step === "register-check" ? (

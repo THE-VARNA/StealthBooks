@@ -24,14 +24,14 @@ export default function ClaimsPage() {
 
       {/* Scan info banner */}
       <GlassPanel padding="md" className="flex items-start gap-4">
-        <div className="rounded-xl bg-[hsl(var(--brand-accent)/0.12)] p-2.5 text-[hsl(var(--brand-accent))] shrink-0">
+        <div className="rounded-xl bg-[rgba(34,211,238,0.12)] p-2.5 text-[#22d3ee] shrink-0">
           <Shield className="h-5 w-5" aria-hidden="true" />
         </div>
         <div>
-          <p className="text-body font-semibold text-[hsl(var(--text-primary))]">
+          <p className="text-body font-semibold text-[rgb(248,250,252)]">
             Privacy-preserving scan
           </p>
-          <p className="text-body-sm text-[hsl(var(--text-secondary))] mt-0.5">
+          <p className="text-body-sm text-[rgb(148,163,184)] mt-0.5">
             The scan runs client-side using your connected wallet. UTXOs are decrypted locally — amounts never reach the server. Your scanning cursor is saved in this browser only.
           </p>
         </div>
@@ -40,16 +40,16 @@ export default function ClaimsPage() {
 
       {/* Claims table */}
       <GlassPanel padding="none" className="overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[hsl(var(--surface-border)/0.08)]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(255,255,255,0.065)]">
           <h2 className="text-heading-2">Discovered UTXOs</h2>
-          <span className="text-body-sm text-[hsl(var(--text-muted))]">0 unclaimed</span>
+          <span className="text-body-sm text-[rgb(71,85,105)]">0 unclaimed</span>
         </div>
         <div className="py-16 flex flex-col items-center gap-4 text-center">
-          <div className="rounded-2xl bg-[hsl(var(--surface-overlay))] p-4 text-[hsl(var(--text-muted))]">
+          <div className="rounded-2xl bg-[rgba(20,24,54,0.6)] p-4 text-[rgb(71,85,105)]">
             <Inbox className="h-8 w-8" aria-hidden="true" />
           </div>
-          <p className="text-heading-2 text-[hsl(var(--text-primary))]">No UTXOs discovered</p>
-          <p className="max-w-sm text-body-sm text-[hsl(var(--text-muted))]">
+          <p className="text-heading-2 text-[rgb(248,250,252)]">No UTXOs discovered</p>
+          <p className="max-w-sm text-body-sm text-[rgb(71,85,105)]">
             Click &apos;Scan Now&apos; to scan your wallet&apos;s publicReceived bucket for incoming payments.
           </p>
         </div>
