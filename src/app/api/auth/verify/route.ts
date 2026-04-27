@@ -48,10 +48,32 @@ export async function POST(req: NextRequest) {
     }
 
     // Load org memberships for this wallet
-    const memberships = await db.organizationMembership.findMany({
+    let memberships = await db.organizationMembership.findMany({
       where: { walletAddress },
       select: { orgId: true, role: true },
     });
+
+    if (memberships.length === 0) {
+      try {
+        // Auto-provision a default org for new users in this demo environment
+        const newOrg = await db.organization.create({
+          data: {
+            name: "My Organization",
+            slug: `org-${walletAddress.slice(0, 8).toLowerCase()}-${Math.floor(Math.random() * 10000)}`,
+            memberships: {
+              create: {
+                walletAddress,
+                role: "OWNER"
+              }
+            }
+          }
+        });
+        memberships = [{ orgId: newOrg.id, role: "OWNER" as any }];
+      } catch (err) {
+        console.error("Failed to auto-provision org:", err);
+        return NextResponse.json({ error: "Failed to create default organization" }, { status: 500 });
+      }
+    }
 
     // Save authenticated session
     session.walletAddress = walletAddress;

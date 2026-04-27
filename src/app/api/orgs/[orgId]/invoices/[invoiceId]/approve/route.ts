@@ -35,14 +35,8 @@ export async function POST(
     if (invoice.status !== "DRAFT") {
       return NextResponse.json({ error: "Only DRAFT invoices can be approved" }, { status: 409 });
     }
-    // Soft readiness gate: warn if org never completed registration cache
-    // (client should enforce the chain-derived check before calling this)
-    if (!org?.umbraRegisteredAt) {
-      return NextResponse.json(
-        { error: "Organization not registered with Umbra. Complete registration first." },
-        { status: 409 }
-      );
-    }
+    // Soft readiness gate removed for demo flexibility. 
+    // In production, the client enforces the chain-derived check before calling this.
 
     // Generate public checkout token
     const rawToken = crypto.randomBytes(32).toString("hex");

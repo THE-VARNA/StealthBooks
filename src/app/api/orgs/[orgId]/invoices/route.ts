@@ -9,6 +9,21 @@ import crypto from "crypto";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/** Safely serialize BigInt fields from Prisma to strings for JSON responses */
+function serializeInvoice(inv: any) {
+  return {
+    ...inv,
+    subtotalMinor: inv.subtotalMinor?.toString(),
+    protocolFeeMinor: inv.protocolFeeMinor?.toString(),
+    totalMinor: inv.totalMinor?.toString(),
+    lineItems: inv.lineItems?.map((li: any) => ({
+      ...li,
+      unitPrice: li.unitPrice?.toString(),
+      amountMinor: li.amountMinor?.toString(),
+    })),
+  };
+}
+
 /** USDC has 6 decimal places. Convert user-facing amount to micro-units. */
 function toMicroUnits(usdcFloat: number): bigint {
   return BigInt(Math.round(usdcFloat * 1_000_000));
@@ -114,7 +129,7 @@ export async function POST(
       return inv;
     });
 
-    return NextResponse.json({ invoice }, { status: 201 });
+    return NextResponse.json({ invoice: serializeInvoice(invoice) }, { status: 201 });
   } catch (err) {
     console.error("[invoices] POST error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -157,9 +172,10 @@ export async function GET(
 
     const hasMore = invoices.length > limit;
     const data = hasMore ? invoices.slice(0, -1) : invoices;
+    const serializedData = data.map(serializeInvoice);
     const nextCursor = hasMore ? data[data.length - 1]?.id : null;
 
-    return NextResponse.json({ invoices: data, nextCursor });
+    return NextResponse.json({ invoices: serializedData, nextCursor });
   } catch (err) {
     console.error("[invoices] GET error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

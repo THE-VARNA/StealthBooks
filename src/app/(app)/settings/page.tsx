@@ -1,6 +1,7 @@
 "use client";
 
-import { Settings, Shield, Users } from "lucide-react";
+import * as React from "react";
+import { Settings, Shield, Users, Loader2 } from "lucide-react";
 import { SectionToolbar } from "@/components/layout/SectionToolbar";
 import { GlassPanel } from "@/components/layout/GlassPanel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -8,8 +9,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 export default function SettingsPage() {
+  const { connected } = useWallet();
+  const [regStatus, setRegStatus] = React.useState<"idle" | "registering" | "done">("idle");
+  const [activeStep, setActiveStep] = React.useState<number>(0);
+
+  async function handleRegister() {
+    if (!connected) return;
+    setRegStatus("registering");
+    
+    // Simulate Step 1: Register user commitment
+    setActiveStep(1);
+    await new Promise(r => setTimeout(r, 1800));
+    
+    // Simulate Step 2: Register X25519 encryption key
+    setActiveStep(2);
+    await new Promise(r => setTimeout(r, 1800));
+    
+    // Simulate Step 3: Activate for anonymous usage
+    setActiveStep(3);
+    await new Promise(r => setTimeout(r, 1800));
+    
+    setRegStatus("done");
+  }
+
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
       <SectionToolbar title="Settings" description="Manage your organization and privacy preferences" />
@@ -47,27 +72,46 @@ export default function SettingsPage() {
               </p>
               <div className="flex flex-col gap-3 mb-5">
                 {[
-                  { step: "1", label: "Register user commitment", done: false },
-                  { step: "2", label: "Register X25519 encryption key", done: false },
-                  { step: "3", label: "Activate for anonymous usage", done: false },
-                ].map(({ step, label, done }) => (
-                  <div key={step} className="flex items-center gap-3">
-                    <div
-                      className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
-                      style={{
-                        background: done ? "#10b981" : "rgba(20,24,54,0.8)",
-                        color: done ? "#fff" : "rgb(71,85,105)",
-                        border: done ? "none" : "1px solid rgba(255,255,255,0.08)",
-                      }}
-                    >
-                      {done ? "✓" : step}
+                  { step: 1, label: "Register user commitment" },
+                  { step: 2, label: "Register X25519 encryption key" },
+                  { step: 3, label: "Activate for anonymous usage" },
+                ].map(({ step, label }) => {
+                  const isDone = regStatus === "done" || activeStep > step;
+                  const isCurrent = regStatus === "registering" && activeStep === step;
+                  
+                  return (
+                    <div key={step} className="flex items-center gap-3">
+                      <div
+                        className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
+                        style={{
+                          background: isDone ? "#10b981" : isCurrent ? "#6366f1" : "rgba(20,24,54,0.8)",
+                          color: isDone || isCurrent ? "#fff" : "rgb(71,85,105)",
+                          border: isDone || isCurrent ? "none" : "1px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        {isDone ? "✓" : step}
+                      </div>
+                      <span className="text-body-sm" style={{ color: "rgb(248,250,252)" }}>{label}</span>
+                      {isCurrent ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-[#6366f1] ml-auto" />
+                      ) : (
+                        <Badge variant={isDone ? "success" : "muted"} className="ml-auto">
+                          {isDone ? "Done" : "Pending"}
+                        </Badge>
+                      )}
                     </div>
-                    <span className="text-body-sm" style={{ color: "rgb(248,250,252)" }}>{label}</span>
-                    <Badge variant={done ? "success" : "muted"} className="ml-auto">{done ? "Done" : "Pending"}</Badge>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-              <Button id="settings-register-umbra-btn" size="md" variant="accent">Begin Registration</Button>
+              <Button 
+                id="settings-register-umbra-btn" 
+                size="md" 
+                variant="accent"
+                onClick={handleRegister}
+                disabled={!connected || regStatus !== "idle"}
+              >
+                {regStatus === "registering" ? "Confirming Transactions..." : regStatus === "done" ? "Registration Complete" : "Begin Registration"}
+              </Button>
             </GlassPanel>
 
             <GlassPanel padding="lg">

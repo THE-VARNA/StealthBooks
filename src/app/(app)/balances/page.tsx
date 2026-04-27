@@ -5,10 +5,37 @@ import { GlassPanel } from "@/components/layout/GlassPanel";
 import { MetricTile } from "@/components/layout/MetricTile";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getIronSession } from "iron-session";
+import { cookies } from "next/headers";
+import { sessionOptions, type SessionData } from "@/lib/auth/session";
+import { db } from "@/lib/db";
+import { formatUsdcCurrency } from "@/lib/formatting";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Private Balance | StealthBooks" };
 
-export default function BalancesPage() {
+export default async function BalancesPage() {
+  const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
+  if (!session.walletAddress) redirect("/login");
+  
+  const orgId = session.orgMemberships?.[0]?.orgId;
+  if (!orgId) redirect("/settings");
+
+  // Sum up all CLAIMED UTXOs for this org
+  const claimedTotal = await db.claimEvent.aggregate({
+    where: { orgId, status: "CLAIMED" },
+    _sum: { amountMinor: true },
+  });
+
+  // Sum up all DISCOVERED or CLAIM_SUBMITTED UTXOs as pending
+  const pendingTotal = await db.claimEvent.aggregate({
+    where: { orgId, status: { in: ["DISCOVERED", "CLAIM_SUBMITTED"] } },
+    _sum: { amountMinor: true },
+  });
+
+  const balanceAmount = claimedTotal._sum.amountMinor || BigInt(0);
+  const pendingAmount = pendingTotal._sum.amountMinor || BigInt(0);
+
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
       <SectionToolbar
@@ -37,21 +64,21 @@ export default function BalancesPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <MetricTile
           label="USDC Private Balance"
-          value="Connect wallet"
+          value={formatUsdcCurrency(balanceAmount)}
           subtext="Encrypted token account"
           icon={<Shield className="h-4 w-4" />}
           accentColor="#6366f1"
         />
         <MetricTile
           label="Pending Claims"
-          value="—"
-          subtext="CLAIM_SUBMITTED, awaiting finality"
+          value={formatUsdcCurrency(pendingAmount)}
+          subtext="Found on-chain, not yet claimed"
           icon={<RefreshCw className="h-4 w-4" />}
           accentColor="#22d3ee"
         />
         <MetricTile
           label="Available to Withdraw"
-          value="—"
+          value={formatUsdcCurrency(balanceAmount)}
           subtext="Ready to sweep to public balance"
           icon={<ArrowDownRight className="h-4 w-4" />}
           accentColor="#10b981"

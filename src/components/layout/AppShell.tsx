@@ -9,6 +9,8 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import WalletConnectStrip from "./WalletConnectStrip";
+import { useAuthStore } from "@/features/auth/useWalletAuth";
 
 const NAV_ITEMS = [
   { href: "/dashboard",    label: "Dashboard",      icon: LayoutDashboard },
@@ -22,13 +24,21 @@ const NAV_ITEMS = [
 
 interface AppShellProps {
   children: React.ReactNode;
-  orgName?: string;
-  walletAddress?: string;
 }
 
-export function AppShell({ children, orgName, walletAddress }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
+  
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  const { orgMemberships } = useAuthStore();
+  
+  // Use the first org membership for display if available
+  const orgName = orgMemberships.length > 0 ? orgMemberships[0].orgId : null;
 
   return (
     <div className="flex min-h-dvh" style={{ background: "rgb(5,7,18)" }}>
@@ -138,34 +148,11 @@ export function AppShell({ children, orgName, walletAddress }: AppShellProps) {
           </ul>
         </nav>
 
-        {/* Wallet strip */}
         <div
           className="px-4 py-4"
           style={{ borderTop: "1px solid rgba(255,255,255,0.065)" }}
         >
-          {walletAddress ? (
-            <div
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5"
-              style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.18)" }}
-            >
-              <div
-                className="flex h-7 w-7 items-center justify-center rounded-full shrink-0 text-xs font-bold text-white"
-                style={{ background: "linear-gradient(135deg, #6366f1, #22d3ee)" }}
-              >
-                {walletAddress.slice(0, 2).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="text-label" style={{ color: "rgb(71,85,105)" }}>Wallet</p>
-                <p className="text-[0.75rem] font-mono truncate" style={{ color: "rgb(148,163,184)" }}>
-                  {walletAddress.slice(0, 6)}…{walletAddress.slice(-4)}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <p className="text-label text-center" style={{ color: "rgb(71,85,105)" }}>
-              Not connected
-            </p>
-          )}
+          {mounted && <WalletConnectStrip />}
         </div>
       </aside>
 

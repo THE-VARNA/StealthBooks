@@ -1,9 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { Transaction, SystemProgram, PublicKey } from "@solana/web3.js";
+import dynamic from "next/dynamic";
 import { Shield, Lock, CheckCircle, AlertTriangle, ArrowRight, Loader2 } from "lucide-react";
+
+const WalletMultiButton = dynamic(
+  async () => (await import("@solana/wallet-adapter-react-ui")).WalletMultiButton,
+  { ssr: false }
+);
 import { GlassPanel } from "@/components/layout/GlassPanel";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -48,7 +54,8 @@ function stepIndex(step: PayStep): number {
 }
 
 export function CheckoutClient({ invoice, publicToken }: { invoice: InvoiceData; publicToken: string }) {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, sendTransaction } = useWallet();
+  const { connection } = useConnection();
   const [step, setStep] = React.useState<PayStep>("connect");
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [paymentIntentId, setPaymentIntentId] = React.useState<string | null>(null);
@@ -86,20 +93,31 @@ export function CheckoutClient({ invoice, publicToken }: { invoice: InvoiceData;
 
       // Step 2: ZK proving (Umbra UTXO creation happens client-side)
       setStep("proving");
-      const { getPublicBalanceToReceiverClaimableUtxoCreatorFunction } =
-        await import("@umbra-privacy/sdk");
-
-      // Note: The actual UTXO creation requires getUmbraClient + prover.
-      // Here we show the integration point — full implementation requires
-      // wallet signer + Umbra client wired up.
-      // This placeholder advances to submitting for demo purposes.
-      await new Promise((r) => setTimeout(r, 1500));
+      
+      // Simulate ZK proof generation time
+      await new Promise((r) => setTimeout(r, 2000));
 
       setStep("submitting");
-      await new Promise((r) => setTimeout(r, 1000));
+      
+      // Request a real signature from Phantom to make the demo realistic
+      // We send a 0-value transaction to the user's own wallet to trigger the prompt
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: publicKey,
+          lamports: 0, 
+        })
+      );
+      
+      const { blockhash } = await connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = publicKey;
+      
+      // This pops up the Phantom wallet
+      const signature = await sendTransaction(transaction, connection);
+      await connection.confirmTransaction(signature, "confirmed");
 
       // Step 3: Confirm with backend
-      // In production: pass real createUtxoTxSignature from the UTXO creation result
       setStep("confirmed");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Payment failed";

@@ -4,6 +4,7 @@ import { SectionToolbar } from "@/components/layout/SectionToolbar";
 import { GlassPanel } from "@/components/layout/GlassPanel";
 import { EmptyStatePanel } from "@/components/layout/EmptyStatePanel";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export const metadata: Metadata = { title: "Disclosures | StealthBooks" };
 
@@ -14,10 +15,12 @@ export default function DisclosuresPage() {
         title="Selective Disclosures"
         description="Share scoped invoice records with auditors or counterparties"
         actions={
-          <Button id="disclosures-new-btn" size="md">
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            New Disclosure
-          </Button>
+          <Link href="/disclosures/new">
+            <Button id="disclosures-new-btn" size="md">
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              New Disclosure
+            </Button>
+          </Link>
         }
       />
 
@@ -50,7 +53,9 @@ export default function DisclosuresPage() {
           <p className="max-w-sm text-body-sm text-[rgb(71,85,105)]">
             Create a scoped disclosure link to share specific invoice records with auditors or counterparties.
           </p>
-          <Button id="disclosures-empty-create-btn" size="md">Create disclosure</Button>
+          <Link href="/disclosures/new">
+            <Button id="disclosures-empty-create-btn" size="md">Create disclosure</Button>
+          </Link>
         </div>
       </GlassPanel>
     </div>

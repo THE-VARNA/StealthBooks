@@ -32,10 +32,10 @@ interface ProvidersProps {
 export function Providers({ children, cluster = "mainnet-beta" }: ProvidersProps) {
   const endpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? clusterApiUrl(cluster);
 
-  const wallets = React.useMemo(
-    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
-    []
-  );
+  const wallets = React.useMemo(() => {
+    if (typeof window === "undefined") return [];
+    return [new PhantomWalletAdapter(), new SolflareWalletAdapter()];
+  }, []);
 
   return (
     <ConnectionProvider endpoint={endpoint}>

@@ -13,8 +13,22 @@ const nextConfig: NextConfig = {
     remotePatterns: [],
   },
 
-  // Webpack: handle WASM for ZK prover circuits
+  transpilePackages: [
+    "@solana/wallet-adapter-base",
+    "@solana/wallet-adapter-react",
+    "@solana/wallet-adapter-react-ui",
+    "@solana/wallet-adapter-phantom",
+    "@solana/wallet-adapter-solflare",
+  ],
+
+  // Webpack: handle WASM for ZK prover circuits and enforce single wallet-adapter instance
   webpack: (config, { isServer }) => {
+    // Force single instances of wallet adapter to fix Context duplication in Next.js 15
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@solana/wallet-adapter-react": require.resolve("@solana/wallet-adapter-react"),
+    };
+
     // Required for @umbra-privacy/web-zk-prover WASM circuits
     config.experiments = {
       ...config.experiments,

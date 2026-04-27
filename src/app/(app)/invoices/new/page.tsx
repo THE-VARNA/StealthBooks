@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { formatUsdcCurrency, parseUsdc } from "@/lib/formatting";
+import { useAuthStore } from "@/features/auth/useWalletAuth";
 import Link from "next/link";
 
 // ─── Local form schema ────────────────────────────────────────────────────────
@@ -40,6 +41,9 @@ export default function NewInvoicePage() {
   const router = useRouter();
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  
+  const { orgMemberships } = useAuthStore();
+  const activeOrgId = orgMemberships.length > 0 ? orgMemberships[0].orgId : null;
 
   const {
     register,
@@ -75,11 +79,14 @@ export default function NewInvoicePage() {
     setSubmitting(true);
     setError(null);
 
-    // TODO: replace with actual orgId from auth store
-    const orgId = "PLACEHOLDER_ORG_ID";
+    if (!activeOrgId) {
+      setError("No active organization found. Please sign in again.");
+      setSubmitting(false);
+      return;
+    }
 
     try {
-      const res = await fetch(`/api/orgs/${orgId}/invoices`, {
+      const res = await fetch(`/api/orgs/${activeOrgId}/invoices`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

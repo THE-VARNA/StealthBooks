@@ -9,6 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import { formatUsdcCurrency, formatDate, formatRelativeTime } from "@/lib/formatting";
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { InvoiceActionButtons } from "./InvoiceActionButtons";
+import { CheckoutLinkDisplay } from "./CheckoutLinkDisplay";
 
 export const metadata: Metadata = { title: "Invoice Detail | StealthBooks" };
 
@@ -37,20 +39,21 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
       <SectionToolbar
-        title={`Invoice ${invoice.invoiceNumber}`}
+        title={
+          <div className="flex items-center gap-4">
+            <span>Invoice {invoice.invoiceNumber}</span>
+            <InvoiceStatusBadge status={invoice.status} />
+          </div>
+        }
         description={`Created ${formatRelativeTime(invoice.createdAt)}`}
         actions={
           <div className="flex items-center gap-2">
-            {canVoid && (
-              <Button id={`inv-${invoiceId}-void`} variant="destructive" size="sm">
-                <XCircle className="h-4 w-4" /> Void
-              </Button>
-            )}
-            {canApprove && (
-              <Button id={`inv-${invoiceId}-approve`} size="sm">
-                <CheckCircle className="h-4 w-4" /> Approve &amp; Generate Link
-              </Button>
-            )}
+            <InvoiceActionButtons
+              invoiceId={invoice.id}
+              orgId={invoice.orgId}
+              canApprove={canApprove}
+              canVoid={canVoid}
+            />
             <Link href="/invoices">
               <Button id="inv-back-btn" variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4" /> Back
@@ -65,7 +68,6 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
           <GlassPanel padding="none" className="overflow-hidden">
             <div className="px-5 py-4 border-b border-[rgba(255,255,255,0.065)] flex items-center justify-between">
               <h2 className="text-heading-2">Line Items</h2>
-              <InvoiceStatusBadge status={invoice.status} />
             </div>
             <table className="w-full" aria-label="Invoice line items">
               <thead>
@@ -103,18 +105,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
             </div>
           </GlassPanel>
 
-          {invoice.status === "OPEN" && (
-            <GlassPanel padding="md" className="border border-[rgba(16,185,129,0.2)] flex items-center gap-4">
-              <Shield className="h-5 w-5 text-[#10b981] shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-body font-semibold">Checkout link ready</p>
-                <p className="text-body-sm text-[rgb(71,85,105)]">Share with your payer to initiate Umbra payment</p>
-                {invoice.publicTokenExpiresAt && (
-                  <p className="text-body-sm text-[rgb(71,85,105)]">Expires: {formatDate(invoice.publicTokenExpiresAt)}</p>
-                )}
-              </div>
-            </GlassPanel>
-          )}
+          <CheckoutLinkDisplay status={invoice.status} expiresAt={invoice.publicTokenExpiresAt} />
         </div>
 
         <GlassPanel padding="md" className="flex flex-col gap-3 h-fit">
