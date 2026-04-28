@@ -10,7 +10,7 @@ import { confirmClaimSchema } from "@/lib/validation/schemas";
 // The client polls chain and calls this when confirmed.
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ claimEventId: string }> }
+  { params }: { params: Promise<{ claimId: string }> }
 ) {
   try {
     const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
@@ -18,10 +18,10 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { claimEventId } = await params;
+    const { claimId } = await params;
 
     const claimEvent = await db.claimEvent.findUnique({
-      where: { id: claimEventId },
+      where: { id: claimId },
     });
     if (!claimEvent) return NextResponse.json({ error: "Claim event not found" }, { status: 404 });
 
@@ -36,7 +36,7 @@ export async function POST(
 
     await db.$transaction(async (tx) => {
       await tx.claimEvent.update({
-        where: { id: claimEventId },
+        where: { id: claimId },
         data: {
           status: "CLAIM_SUBMITTED",
           claimTxSignature: parsed.data.claimTxSignature,
