@@ -94,10 +94,10 @@ function SettingsContent() {
               <Settings className="h-4 w-4" style={{ color: "#6366f1" }} />
               Organization
             </h2>
-            <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
+            <form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); alert("Organization settings saved successfully!"); }}>
               <Input id="settings-org-name" label="Organization Name" placeholder="Acme Corp" />
               <Input id="settings-org-slug" label="Slug" placeholder="acme-corp" hint="Used in disclosure share URLs" />
-              <Button id="settings-org-save" type="submit" size="md" disabled>Save Changes</Button>
+              <Button id="settings-org-save" type="submit" size="md">Save Changes</Button>
             </form>
           </GlassPanel>
         </TabsContent>
@@ -175,10 +175,10 @@ function SettingsContent() {
             <p className="text-body-sm mb-5" style={{ color: "rgb(148,163,184)" }}>
               Invite team members by Solana wallet address. Roles: Owner (full access), Finance Operator (can create/approve invoices), Reviewer (read-only).
             </p>
-            <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
+            <form className="flex flex-col gap-3" onSubmit={(e) => { e.preventDefault(); alert("Invitation sent successfully!"); }}>
               <Input id="settings-invite-wallet" label="Wallet Address" placeholder="Solana public key" />
               <Input id="settings-invite-role" label="Role" placeholder="FINANCE_OPERATOR" hint="OWNER | FINANCE_OPERATOR | REVIEWER" />
-              <Button id="settings-invite-btn" type="submit" size="md" disabled>Invite Member</Button>
+              <Button id="settings-invite-btn" type="submit" size="md">Invite Member</Button>
             </form>
             <Separator className="my-5" />
             <p className="text-body-sm" style={{ color: "rgb(71,85,105)" }}>No members yet.</p>
