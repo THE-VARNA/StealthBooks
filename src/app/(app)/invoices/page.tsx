@@ -76,7 +76,7 @@ export default async function InvoicesPage() {
                 <div className="text-body-sm text-[rgb(148,163,184)] truncate pr-4">{inv.memo || inv.internalNotes || "—"}</div>
                 <div className="text-body-sm font-medium text-[#10b981]">{formatUsdcCurrency(inv.totalMinor)}</div>
                 <div>
-                  <Badge variant="outline" className="uppercase text-[0.65rem] tracking-wider text-[rgb(148,163,184)] border-[rgba(255,255,255,0.1)]">
+                  <Badge variant="muted" className="uppercase text-[0.65rem] tracking-wider text-[rgb(148,163,184)] border-[rgba(255,255,255,0.1)]">
                     {inv.status.replace(/_/g, ' ')}
                   </Badge>
                 </div>

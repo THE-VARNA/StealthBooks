@@ -13,7 +13,7 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { Transaction, SystemProgram } from "@solana/web3.js";
 import { useSearchParams } from "next/navigation";
 
-export default function SettingsPage() {
+function SettingsContent() {
   const { connected, publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const searchParams = useSearchParams();
@@ -186,5 +186,13 @@ export default function SettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <React.Suspense fallback={<div className="p-8 text-center text-sm text-[rgb(148,163,184)] animate-pulse">Loading settings...</div>}>
+      <SettingsContent />
+    </React.Suspense>
   );
 }
