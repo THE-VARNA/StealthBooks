@@ -98,7 +98,7 @@ export default async function ClaimsPage() {
                     +{formatUsdcCurrency(claim.amountMinor)}
                   </td>
                   <td className="px-5 py-3">
-                    <Badge variant="outline" className="border-[#6366f1] text-[#6366f1] bg-[rgba(99,102,241,0.1)]">
+                    <Badge variant="primary">
                       {claim.status}
                     </Badge>
                   </td>
