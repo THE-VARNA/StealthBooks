@@ -27,12 +27,23 @@ export default async function DisclosurePage({
     notFound(); // or a custom expired page
   }
 
+  const dbInvoices = await db.invoice.findMany({
+    where: { orgId: session.orgId },
+    orderBy: { createdAt: 'desc' },
+    select: { createdAt: true, invoiceNumber: true, totalMinor: true }
+  });
+
   const initialData = {
     label: session.label,
     orgName: session.organization.name,
     createdAt: session.createdAt.toISOString(),
     expiresAt: session.expiresAt.toISOString(),
     scope: session.scope as { kinds: string[] },
+    invoices: dbInvoices.map(inv => ({
+      date: inv.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      id: inv.invoiceNumber,
+      amountMinor: inv.totalMinor.toString()
+    }))
   };
 
   // Record access in audit log

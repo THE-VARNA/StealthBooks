@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { formatUsdcCurrency } from "@/lib/formatting";
 
 interface DisclosureData {
   label: string;
@@ -16,6 +17,11 @@ interface DisclosureData {
   scope: {
     kinds: string[];
   };
+  invoices: {
+    date: string;
+    id: string;
+    amountMinor: string;
+  }[];
 }
 
 export function DisclosureClient({ 
@@ -136,7 +142,7 @@ export function DisclosureClient({
           <GlassPanel padding="none" className="md:col-span-2 overflow-hidden flex flex-col min-h-[400px]">
              <div className="p-6 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between bg-[rgba(20,24,54,0.3)]">
                 <h3 className="text-heading-2 text-[rgb(248,250,252)]">Invoice Audit Log</h3>
-                <Badge variant="accent">3 Records Found</Badge>
+                <Badge variant="accent">{initialData.invoices.length} Records Found</Badge>
              </div>
              
              <div className="flex-1 flex flex-col">
@@ -149,15 +155,11 @@ export function DisclosureClient({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[rgba(255,255,255,0.06)]">
-                    {[
-                      { date: "Apr 26, 2026", id: "SB-2026-000008", amount: "$50.10" },
-                      { date: "Apr 25, 2026", id: "SB-2026-000006", amount: "$50.10" },
-                      { date: "Apr 24, 2026", id: "SB-2026-000004", amount: "$50.10" },
-                    ].map((row, i) => (
+                    {initialData.invoices.map((row, i) => (
                       <tr key={i} className="hover:bg-[rgba(255,255,255,0.02)] transition-colors">
                         <td className="px-6 py-4 text-body-sm text-[rgb(148,163,184)]">{row.date}</td>
                         <td className="px-6 py-4 text-body-sm font-mono text-[rgb(248,250,252)]">{row.id}</td>
-                        <td className="px-6 py-4 text-body-sm text-right font-semibold text-[#10b981]">{row.amount}</td>
+                        <td className="px-6 py-4 text-body-sm text-right font-semibold text-[#10b981]">+{formatUsdcCurrency(BigInt(row.amountMinor))}</td>
                       </tr>
                     ))}
                   </tbody>
