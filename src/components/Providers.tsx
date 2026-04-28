@@ -39,7 +39,7 @@ export function Providers({ children, cluster = "mainnet-beta" }: ProvidersProps
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={false}>
+      <WalletProvider wallets={wallets} autoConnect={true}>
         <WalletModalProvider>
           <QueryClientProvider client={queryClient}>
             <TooltipProvider delayDuration={300}>

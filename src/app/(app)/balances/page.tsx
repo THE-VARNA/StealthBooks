@@ -3,6 +3,7 @@ import { Shield, Lock, RefreshCw, ArrowDownRight } from "lucide-react";
 import { SectionToolbar } from "@/components/layout/SectionToolbar";
 import { GlassPanel } from "@/components/layout/GlassPanel";
 import { MetricTile } from "@/components/layout/MetricTile";
+import { RefreshBalanceButton } from "./RefreshBalanceButton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getIronSession } from "iron-session";
@@ -19,7 +20,7 @@ export default async function BalancesPage() {
   if (!session.walletAddress) redirect("/login");
   
   const orgId = session.orgMemberships?.[0]?.orgId;
-  if (!orgId) redirect("/settings");
+  if (!orgId) redirect("/settings?prompt=register");
 
   // Sum up all CLAIMED UTXOs for this org
   const claimedTotal = await db.claimEvent.aggregate({
@@ -33,7 +34,23 @@ export default async function BalancesPage() {
     _sum: { amountMinor: true },
   });
 
-  const balanceAmount = claimedTotal._sum.amountMinor || BigInt(0);
+  // Sum up all withdrawals from the audit log to deduct from balance
+  const withdrawals = await db.auditLog.findMany({
+    where: { orgId, action: "WITHDRAWAL_CONFIRMED" },
+    select: { metadata: true }
+  });
+
+  const totalWithdrawn = withdrawals.reduce((acc, log) => {
+    const meta = log.metadata as { amountMinor?: string } | null;
+    if (meta && meta.amountMinor) {
+      return acc + BigInt(meta.amountMinor);
+    }
+    return acc;
+  }, BigInt(0));
+
+  let balanceAmount = (claimedTotal._sum.amountMinor || BigInt(0)) - totalWithdrawn;
+  if (balanceAmount < BigInt(0)) balanceAmount = BigInt(0);
+
   const pendingAmount = pendingTotal._sum.amountMinor || BigInt(0);
 
   return (
@@ -42,10 +59,7 @@ export default async function BalancesPage() {
         title="Private Balance"
         description="Your encrypted token account (ETA) balance — decrypted client-side only"
         actions={
-          <Button id="balances-refresh-btn" variant="outline" size="md">
-            <RefreshCw className="h-4 w-4" aria-hidden="true" />
-            Refresh
-          </Button>
+          <RefreshBalanceButton />
         }
       />
 

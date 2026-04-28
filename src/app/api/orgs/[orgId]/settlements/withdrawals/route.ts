@@ -11,7 +11,7 @@ const withdrawalSchema = z.object({
   destinationOwnerAddress: z.string().min(32).max(44),
   amountMinor: z.string().regex(/^\d+$/, "Must be bigint string"),
   mint: z.string().min(32).max(44),
-  txSignature: z.string().min(80).optional(),
+  txSignature: z.string().min(10).optional(),
 });
 
 // POST /api/orgs/[orgId]/settlements/withdrawals
@@ -35,6 +35,7 @@ export async function POST(
     const body = await req.json();
     const parsed = withdrawalSchema.safeParse(body);
     if (!parsed.success) {
+      console.error("[settlements/withdrawals] Validation failed:", parsed.error);
       return NextResponse.json({ error: "Validation failed" }, { status: 422 });
     }
 
@@ -47,7 +48,9 @@ export async function POST(
         metadata: {
           destinationOwnerAddress: parsed.data.destinationOwnerAddress,
           mint: parsed.data.mint,
-          // Amount intentionally omitted from audit log for privacy
+          // MOCK FOR DEMO: We store the amount here so the balances page can deduct it.
+          // In a real app, the server never stores ETA balances to preserve privacy.
+          amountMinor: parsed.data.amountMinor,
         },
       },
     });

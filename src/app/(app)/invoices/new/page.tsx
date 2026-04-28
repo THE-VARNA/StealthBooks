@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus, Trash2, ArrowLeft, Send } from "lucide-react";
@@ -63,14 +63,18 @@ export default function NewInvoicePage() {
     name: "lineItems",
   });
 
-  const watchedItems = watch("lineItems");
+  const watchedItems = useWatch({
+    control,
+    name: "lineItems",
+  });
 
   const subtotal = React.useMemo(() => {
-    return watchedItems.reduce(
-      (acc, li) => acc + computeLineTotal(Number(li.quantity), Number(li.unitPrice)),
+    const items = watchedItems || fields;
+    return items.reduce(
+      (acc, li) => acc + computeLineTotal(Number(li?.quantity || 0), Number(li?.unitPrice || 0)),
       0
     );
-  }, [watchedItems]);
+  }, [watchedItems, fields]);
 
   const protocolFee = subtotal * PROTOCOL_FEE_RATE;
   const total = subtotal + protocolFee;
@@ -152,13 +156,14 @@ export default function NewInvoicePage() {
                 ))}
               </div>
 
-              <div className="flex flex-col divide-y divide-[rgba(255,255,255,0.06)]">
-                {fields.map((field, i) => {
-                  const lineTotal = computeLineTotal(
-                    Number(watchedItems[i]?.quantity),
-                    Number(watchedItems[i]?.unitPrice)
-                  );
-                  return (
+                <div className="flex flex-col divide-y divide-[rgba(255,255,255,0.06)]">
+                  {fields.map((field, i) => {
+                    const currentItems = watchedItems || fields;
+                    const lineTotal = computeLineTotal(
+                      Number(currentItems[i]?.quantity),
+                      Number(currentItems[i]?.unitPrice)
+                    );
+                    return (
                     <div key={field.id} className="grid grid-cols-[1fr_80px_100px_36px] gap-3 items-start px-5 py-3">
                       <Input
                         id={`line-${i}-description`}

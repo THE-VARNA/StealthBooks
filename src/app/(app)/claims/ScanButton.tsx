@@ -17,12 +17,11 @@ export function ScanButton({ orgId }: { orgId: string }) {
       await new Promise(r => setTimeout(r, 2000));
       
       const res = await fetch(`/api/orgs/${orgId}/claims/scan`, { method: "POST" });
-      const data = await res.json();
+      await res.json();
       
-      alert(`Scan complete! Found ${data.scanned || 0} new UTXOs in your publicReceived bucket.`);
       router.refresh();
     } catch (err) {
-      alert("Scan failed.");
+      console.error("Scan failed.", err);
     } finally {
       setIsScanning(false);
     }

@@ -21,13 +21,15 @@ export default async function ClaimsPage() {
   if (!session.walletAddress) redirect("/login");
   
   const orgId = session.orgMemberships?.[0]?.orgId;
-  if (!orgId) redirect("/settings");
+  if (!orgId) redirect("/settings?prompt=register");
 
   const claims = await db.claimEvent.findMany({
     where: { orgId },
     orderBy: { discoveredAt: "desc" },
     include: { invoice: { select: { invoiceNumber: true } } },
   });
+
+  const unclaimedCount = claims.filter(c => c.status === "DISCOVERED" || c.status === "CLAIM_SUBMITTED").length;
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
@@ -59,7 +61,7 @@ export default async function ClaimsPage() {
       <GlassPanel padding="none" className="overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(255,255,255,0.065)]">
           <h2 className="text-heading-2">Discovered UTXOs</h2>
-          <span className="text-body-sm text-[rgb(71,85,105)]">{claims.length} unclaimed</span>
+          <span className="text-body-sm text-[rgb(71,85,105)]">{unclaimedCount} unclaimed</span>
         </div>
         
         {claims.length === 0 ? (
