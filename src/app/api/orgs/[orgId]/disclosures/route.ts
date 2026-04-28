@@ -61,7 +61,12 @@ export async function POST(
       return ds;
     });
 
-    const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL}/disclosures/${shareId}`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL 
+      ? process.env.NEXT_PUBLIC_APP_URL 
+      : process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : 'http://localhost:3000';
+    const shareUrl = `${appUrl}/disclosures/${shareId}`;
     return NextResponse.json({ shareUrl, expiresAt, disclosureSessionId: session_.id }, { status: 201 });
   } catch (err) {
     console.error("[disclosures] POST error:", err);

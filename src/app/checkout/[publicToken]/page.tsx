@@ -14,8 +14,14 @@ interface PageProps {
 export default async function CheckoutPage({ params }: PageProps) {
   const { publicToken } = await params;
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL 
+    ? process.env.NEXT_PUBLIC_APP_URL 
+    : process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : 'http://localhost:3000';
+
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL}/api/public/invoices/${publicToken}`,
+    `${appUrl}/api/public/invoices/${publicToken}`,
     { cache: "no-store" }
   );
 

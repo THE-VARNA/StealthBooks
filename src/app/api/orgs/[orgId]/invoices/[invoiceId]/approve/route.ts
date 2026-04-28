@@ -70,7 +70,13 @@ export async function POST(
     });
 
     // Raw token returned once — never stored
-    const checkoutUrl = `${process.env.NEXT_PUBLIC_APP_URL}/checkout/${rawToken}`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL 
+      ? process.env.NEXT_PUBLIC_APP_URL 
+      : process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : 'http://localhost:3000';
+        
+    const checkoutUrl = `${appUrl}/checkout/${rawToken}`;
 
     return NextResponse.json({ checkoutUrl, expiresAt });
   } catch (err) {
